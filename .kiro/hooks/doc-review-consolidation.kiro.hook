@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Documentation Consolidation",
+  "description": "Maintains lean documentation structure by preventing redundant files and enforcing single-source-of-truth principle",
+  "version": "3",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "docs/**/*.md",
+      ".kiro/steering/**/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Documentation file modified. Enforce consolidation rules:\n\n**ALLOWED DOCUMENTS:**\n- docs/PROJECT_STATUS.md (progress tracking only)\n- docs/UI_GUIDE.md (UI usage details)\n- docs/DOCKER_GUIDE.md (Docker setup)\n- docs/ERROR_HANDLING.md (error patterns)\n- .kiro/steering/development-guidelines.md (dev practices)\n- .kiro/specs/papersmith-agent/* (requirements, design, tasks)\n\n**FORBIDDEN:**\n❌ Task completion summaries (use PROJECT_STATUS.md)\n❌ Phase overview docs (use PROJECT_STATUS.md)\n❌ Verification reports (use testing checklists in tasks)\n❌ Implementation notes (use git commits)\n❌ Maintenance guides (use development-guidelines.md)\n❌ Testing strategy docs (use development-guidelines.md)\n\n**RULES:**\n1. Each topic has ONE authoritative document\n2. Other docs link, never duplicate\n3. PROJECT_STATUS.md updated on every task completion\n4. Guides are detailed (UI, Docker, Error Handling)\n5. Status is brief (current state + next steps)\n\n**ACTION:**\nIf new doc created or existing doc has duplicate content:\n- Delete redundant files\n- Merge into appropriate existing doc\n- Update cross-references\n- Keep structure lean"
+  }
+}

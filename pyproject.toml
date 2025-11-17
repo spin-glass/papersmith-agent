@@ -1,0 +1,134 @@
+# -*- coding: utf-8 -*-
+[project]
+name = "papersmith-agent"
+version = "0.2.0"
+description = "完全ローカルで動作する自律型論文解析エージェントシステム"
+requires-python = ">=3.11,<3.13"
+readme = "README.md"
+license = { text = "MIT" }
+
+dependencies = [
+    # Web Framework
+    "fastapi==0.109.0",
+    "uvicorn[standard]==0.27.0",
+    "python-multipart==0.0.6",
+    
+    # Vector Database
+    "chromadb==0.4.22",
+    
+    # External LLM APIs
+    "google-generativeai>=0.3.0",
+    "openai>=1.0.0",
+    
+    # Data Models and Validation
+    "pydantic>=2.5.3",
+    "pydantic-settings>=2.1.0",
+    
+    # External API Clients
+    "arxiv==2.1.0",
+    "httpx==0.26.0",
+    
+    # PDF Processing
+    "pypdf==3.17.4",
+    
+    # Utilities
+    "python-dotenv==1.0.0",
+    "tenacity==8.2.3",
+]
+
+[project.optional-dependencies]
+ui = [
+    "streamlit==1.31.0",
+]
+
+dev = [
+    "pytest==7.4.3",
+    "pytest-asyncio==0.21.1",
+    "pytest-mock==3.12.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.3.0",
+    "pytest-timeout>=2.1.0",
+    "coverage[toml]>=7.3.0",
+]
+
+# Local model backends (optional)
+local-cpu = [
+    "transformers==4.37.2",
+    "torch==2.3.0",
+    "sentence-transformers==2.3.1",
+    "accelerate==0.26.1",
+]
+
+local-mlx = [
+    "mlx>=0.0.9",
+    "mlx-lm>=0.0.9",
+]
+
+local-cuda = [
+    "transformers==4.37.2",
+    "torch==2.3.0",
+    "sentence-transformers==2.3.1",
+    "accelerate==0.26.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+timeout = 300
+
+# Test markers
+markers = [
+    "unit: Unit tests (fast, mocked)",
+    "integration: Integration tests (component interactions)",
+    "e2e: End-to-end tests (full workflows)",
+    "slow: Slow tests (real API calls, skip for fast iteration)",
+]
+
+# Coverage and output options
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-fail-under=85",
+]
+
+# Ignore warnings from dependencies
+filterwarnings = [
+    "ignore::DeprecationWarning:pydantic.*",
+    "ignore::DeprecationWarning:feedparser.*",
+    "ignore::DeprecationWarning:cgi.*",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "tests/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]

@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  papersmith-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    container_name: papersmith-agent
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for development (hot reload)
+      - ./src:/app/src
+      # Persistent data storage
+      - ./data:/app/data
+      - ./cache:/app/cache
+      - ./models:/app/models
+      # Mount dependency files for development (optional - allows dependency updates without rebuild)
+      # Uncomment if you want to modify dependencies without rebuilding:
+      # - ./pyproject.toml:/app/pyproject.toml
+      # - ./uv.lock:/app/uv.lock
+    environment:
+      # Load from .env file
+      - CHROMA_PERSIST_DIR=${CHROMA_PERSIST_DIR:-/app/data/chroma}
+      - PDF_CACHE_DIR=${PDF_CACHE_DIR:-/app/cache/pdfs}
+      - METADATA_CACHE_DIR=${METADATA_CACHE_DIR:-/app/cache/metadata}
+      - MODEL_CACHE_DIR=${MODEL_CACHE_DIR:-/app/models}
+      - LLM_BACKEND=${LLM_BACKEND:-gemini}
+      - EMBEDDING_BACKEND=${EMBEDDING_BACKEND:-gemini}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - papersmith-network
+
+  papersmith-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ui
+    container_name: papersmith-ui
+    ports:
+      - "8501:8501"
+    volumes:
+      # Mount UI code for development (hot reload)
+      - ./ui:/app/ui
+      # Mount dependency files for development (optional - allows dependency updates without rebuild)
+      # Uncomment if you want to modify dependencies without rebuilding:
+      # - ./pyproject.toml:/app/pyproject.toml
+      # - ./uv.lock:/app/uv.lock
+    environment:
+      - PAPERSMITH_API_URL=http://papersmith-api:8000
+    depends_on:
+      - papersmith-api
+    restart: unless-stopped
+    networks:
+      - papersmith-network
+
+networks:
+  papersmith-network:
+    driver: bridge
