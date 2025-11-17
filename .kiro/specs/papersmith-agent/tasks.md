@@ -399,7 +399,7 @@
     - _Testing Strategy: CI/CD Integration_
 
 - [-] 22.9. CI/CD統合
-  - [ ] 22.9.1 GitHub Actions設定
+  - [-] 22.9.1 GitHub Actions設定
     - .github/workflows/test.ymlを作成
     - ユニットテスト自動実行
     - 統合テスト自動実行
