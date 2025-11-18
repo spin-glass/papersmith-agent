@@ -51,6 +51,10 @@ dev = [
     "pytest-timeout>=2.1.0",
     "coverage[toml]>=7.3.0",
 
+    # E2E Testing
+    "playwright>=1.40.0",
+    "pytest-playwright>=0.4.4",
+
     # Linting and formatting
     "ruff>=0.1.0",
     "mypy>=1.7.0",
@@ -100,6 +104,7 @@ markers = [
     "unit: Unit tests (fast, mocked)",
     "integration: Integration tests (component interactions)",
     "e2e: End-to-end tests (full workflows)",
+    "ui: UI tests using Playwright",
     "slow: Slow tests (real API calls, skip for fast iteration)",
 ]
 
