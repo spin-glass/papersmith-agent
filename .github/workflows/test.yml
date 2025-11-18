@@ -34,6 +34,12 @@ jobs:
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       
+      - name: Debug - Check src directory
+        run: |
+          ls -la
+          ls -la src/
+          ls -la src/models/
+      
       - name: Run unit tests
         run: uv run pytest tests/unit --cov=src --cov-report=xml --cov-report=term-missing -v --timeout=30
       
