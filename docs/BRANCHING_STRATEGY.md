@@ -136,44 +136,17 @@ git push origin develop
 
 ## CI/CD Integration
 
+GitHub Actionsでテストを自動実行します。詳細な最適化戦略は[CI_OPTIMIZATION.md](CI_OPTIMIZATION.md)を参照。
+
 ### Test Execution Strategy
 
-GitHub Actionsは以下のルールでテストを実行します：
-
-#### Unit Tests (常に実行)
-- **実行タイミング**: すべてのpushとPR
-- **実行時間**: ~1分
-- **目的**: 高速フィードバック
-
-#### Integration + E2E Tests (条件付き実行)
-- **実行タイミング**:
-  - `main`ブランチへのpush
-  - `develop`ブランチへのpush
-  - `main`または`develop`へのPR
-  - 手動トリガー（workflow_dispatch）
-- **実行時間**: ~6分
-- **目的**: 包括的な品質保証
+- **Unit Tests**: すべてのpush/PRで実行（~1分）
+- **Integration + E2E Tests**: main/developブランチへのpush/PRで実行（~6分）
 
 ### Branch Protection Rules
 
-#### `main`ブランチ
-- ✅ Require pull request reviews (1 approval)
-- ✅ Require status checks to pass
-  - Unit tests
-  - Integration tests
-  - E2E tests
-- ✅ Require branches to be up to date
-- ✅ Include administrators
-- ❌ Allow force pushes
-
-#### `develop`ブランチ
-- ✅ Require status checks to pass
-  - Unit tests
-  - Integration tests
-  - E2E tests
-- ✅ Require branches to be up to date
-- ⚠️ Require pull request reviews (推奨)
-- ❌ Allow force pushes
+**main**: PR必須、レビュー1名、全テスト必須、force push禁止
+**develop**: PR推奨、全テスト必須、force push禁止
 
 ## Commit Message Convention
 
