@@ -146,7 +146,7 @@ testpaths = tests
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
-addopts = 
+addopts =
     --verbose
     --cov=src
     --cov-report=html
@@ -232,25 +232,25 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v1
-        
+
       - name: Set up Python
         run: uv python install 3.12
-        
+
       - name: Install dependencies
         run: uv sync --frozen --extra dev
-        
+
       - name: Run unit tests
         run: uv run pytest tests/unit -m unit --cov=src --cov-report=xml
-        
+
       - name: Run integration tests
         run: uv run pytest tests/integration -m integration
-        
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -344,14 +344,14 @@ def in_memory_chroma():
 def test_concurrent_rag_queries():
     """同時RAGクエリのパフォーマンステスト"""
     import concurrent.futures
-    
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         futures = [
             executor.submit(rag_service.query, f"質問{i}")
             for i in range(100)
         ]
         results = [f.result() for f in futures]
-    
+
     assert len(results) == 100
     # 平均応答時間 < 2秒
 ```

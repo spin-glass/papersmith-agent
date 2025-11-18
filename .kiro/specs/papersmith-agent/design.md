@@ -20,7 +20,7 @@ graph TB
         CLI[CLI Client]
         UI[Web UI - Optional]
     end
-    
+
     subgraph "API Layer - FastAPI"
         Router[Message Router]
         RAG[RAG Endpoints]
@@ -28,7 +28,7 @@ graph TB
         Digest[Digest Endpoints]
         Admin[Admin Endpoints]
     end
-    
+
     subgraph "Agent Layer - LangGraph"
         MessageRouter[Message Router Agent]
         RAGAgent[RAG Agent]
@@ -37,7 +37,7 @@ graph TB
         PrereqAgent[Prerequisite Agent]
         NetworkAgent[Network Agent]
     end
-    
+
     subgraph "Service Layer"
         PaperService[Paper Service]
         RAGService[RAG Service]
@@ -45,7 +45,7 @@ graph TB
         EmbeddingService[Embedding Service]
         AnalysisService[Analysis Service]
     end
-    
+
     subgraph "Data Layer"
         ArxivAPI[arXiv API]
         CrossRefAPI[CrossRef API]
@@ -53,31 +53,31 @@ graph TB
         Chroma[(Chroma VectorDB)]
         FileCache[File Cache - PDF/JSON]
     end
-    
+
     CLI --> Router
     UI --> Router
     Router --> RAG
     Router --> Search
     Router --> Digest
     Router --> Admin
-    
+
     RAG --> RAGAgent
     Search --> SearchAgent
     Digest --> SearchAgent
-    
+
     RAGAgent --> RAGService
     SearchAgent --> PaperService
     CompareAgent --> AnalysisService
-    
+
     RAGService --> LLMService
     RAGService --> EmbeddingService
     RAGService --> Chroma
-    
+
     PaperService --> ArxivAPI
     PaperService --> CrossRefAPI
     PaperService --> SemanticAPI
     PaperService --> FileCache
-    
+
     EmbeddingService --> Chroma
     AnalysisService --> LLMService
 ```
@@ -99,11 +99,11 @@ graph TB
         LLMService[LLM Service]
         EmbeddingService[Embedding Service]
     end
-    
+
     subgraph "Backend Abstraction"
         BackendFactory[Backend Factory]
     end
-    
+
     subgraph "Backend Implementations"
         Gemini[Gemini API<br/>無料・高速]
         OpenAI[OpenAI API<br/>高品質]
@@ -111,7 +111,7 @@ graph TB
         LocalMLX[Local MLX<br/>Mac GPU]
         LocalCUDA[Local CUDA<br/>NVIDIA GPU]
     end
-    
+
     LLMService --> BackendFactory
     EmbeddingService --> BackendFactory
     BackendFactory --> Gemini

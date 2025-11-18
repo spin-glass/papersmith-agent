@@ -399,31 +399,31 @@
     - _Testing Strategy: CI/CD Integration_
 
 - [-] 22.9. CI/CD統合
-  - [-] 22.9.1 GitHub Actions設定
+  - [x] 22.9.1 GitHub Actions設定
     - .github/workflows/test.ymlを作成
     - ユニットテスト自動実行
     - 統合テスト自動実行
     - カバレッジアップロード（Codecov）
     - _Testing Strategy: CI/CD Integration_
-  - [ ] 22.9.2 pre-commit hooks設定
+  - [x] 22.9.2 pre-commit hooks設定
     - .pre-commit-config.yamlを作成
     - pytest実行（ユニットテストのみ）
     - カバレッジチェック
     - _Testing Strategy: TDD Workflow_
 
-- [ ] 22.10. ドキュメント更新
-  - [ ] 22.10.1 テスト実行ガイド作成
+- [x] 22.10. ドキュメント更新
+  - [x] 22.10.1 テスト実行ガイド作成
     - docs/TESTING.mdを作成
     - テスト実行方法
     - TDDワークフロー
     - トラブルシューティング
     - _Testing Strategy: Documentation_
-  - [ ] 22.10.2 README更新
+  - [x] 22.10.2 README更新
     - テストセクションを追加
     - カバレッジバッジを追加
     - テストコマンドを追加
     - _Testing Strategy: Documentation_
-  - [ ] 22.10.3 開発ガイドライン更新
+  - [x] 22.10.3 開発ガイドライン更新
     - .kiro/steering/development-guidelines.mdを更新
     - TDD必須化
     - テストカバレッジ要件
