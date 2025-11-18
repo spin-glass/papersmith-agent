@@ -2,11 +2,21 @@
 
 ## Core Principles
 
-1. **Test-Driven Development (TDD)**: Write tests before implementation
+1. **Test-Driven Development (TDD) - MANDATORY**: Write tests before implementation
+   - Red: Write failing test first
+   - Green: Implement minimal solution
+   - Refactor: Improve code quality
+   - Coverage: Verify 85%+ coverage
 2. **Execute and Verify**: Always run code after writing it
 3. **Fix Immediately**: Don't defer problems - fix them on the spot
-4. **Coverage Target**: Maintain 85%+ test coverage
+4. **Coverage Target - MANDATORY**: Maintain 85%+ test coverage
+   - Overall: 85%+
+   - Services: 90%+
+   - API Endpoints: 85%+
+   - Models: 95%+
+   - Clients: 80%+
 5. **No Documentation Escape**: Don't create docs to avoid fixing issues
+6. **Test Review - MANDATORY**: Complete test review checklist before marking tasks complete
 
 ## Task Completion Definition
 
@@ -459,12 +469,102 @@ curl http://localhost:8000/health
 # ❌ NEVER: cat > file.py, echo "text" > file.py
 ```
 
+## Test Review Checklist
+
+Before marking any task complete or submitting a pull request, verify ALL items in this checklist:
+
+### Pre-Implementation Checklist
+
+- [ ] **Existing tests pass**: Run `uv run pytest tests/ -v` - all tests must pass
+- [ ] **No warnings**: Address all deprecation and import warnings
+- [ ] **Clean baseline**: No broken tests or pending fixes
+
+### Test Implementation Checklist
+
+- [ ] **TDD followed**: Tests written before implementation (Red → Green → Refactor)
+- [ ] **Test coverage**: New code has 85%+ coverage
+- [ ] **Test types**:
+  - [ ] Unit tests for core logic (mocked dependencies)
+  - [ ] Integration tests for component interactions
+  - [ ] At least 1 real API connectivity test (if applicable)
+  - [ ] Property-based tests for universal properties (if applicable)
+- [ ] **Test quality**:
+  - [ ] Tests are independent (no shared state)
+  - [ ] Tests are deterministic (no random failures)
+  - [ ] Tests are fast (unit tests < 1s, integration < 10s)
+  - [ ] Tests have clear, descriptive names
+  - [ ] Tests follow AAA pattern (Arrange, Act, Assert)
+- [ ] **Test markers**: Appropriate markers applied (`@pytest.mark.unit`, `@pytest.mark.integration`, `@pytest.mark.slow`)
+- [ ] **Fixtures**: Reusable fixtures in `conftest.py` where appropriate
+- [ ] **Mocking**: External dependencies properly mocked in unit tests
+- [ ] **Assertions**: Clear, specific assertions (not just `assert result`)
+
+### Code Quality Checklist
+
+- [ ] **No syntax errors**: `getDiagnostics` shows no errors
+- [ ] **Imports work**: `python3 -c "import module"` succeeds
+- [ ] **Code runs**: Actual execution produces expected results
+- [ ] **Encoding**: UTF-8 encoding declaration for files with Japanese text
+- [ ] **Dependencies**: All required packages in `pyproject.toml`
+- [ ] **Type hints**: Functions have type annotations
+- [ ] **Docstrings**: Public functions have docstrings
+- [ ] **Error handling**: Appropriate error handling and logging
+
+### Coverage Checklist
+
+- [ ] **Overall coverage**: 85%+ (run `uv run pytest --cov=src --cov-report=term`)
+- [ ] **Component coverage**:
+  - [ ] Services: 90%+
+  - [ ] API Endpoints: 85%+
+  - [ ] Models: 95%+
+  - [ ] Clients: 80%+
+- [ ] **Coverage report**: HTML report generated and reviewed
+- [ ] **Uncovered lines**: Justified (e.g., error handling, defensive code)
+
+### Integration Checklist
+
+- [ ] **All tests pass**: `uv run pytest` - 100% pass rate
+- [ ] **No test skips**: No `@pytest.mark.skip` without justification
+- [ ] **Parallel execution**: Tests pass with `uv run pytest -n auto`
+- [ ] **CI/CD ready**: Tests pass in CI environment
+- [ ] **Documentation updated**: README.md, docs/TESTING.md if needed
+
+### Final Verification
+
+- [ ] **Clean run**: `uv run pytest --cov=src --cov-fail-under=85` passes
+- [ ] **No regressions**: Existing functionality still works
+- [ ] **Performance**: No significant performance degradation
+- [ ] **Logs clean**: No unexpected errors or warnings in logs
+
+### Before Commit
+
+```bash
+# Run this command sequence before committing:
+uv run pytest --cov=src --cov-report=term --cov-fail-under=85
+uv run pytest -n auto  # Verify parallel execution
+uv run pytest -m slow -v  # Verify connectivity tests (if applicable)
+```
+
+### Review Questions
+
+Ask yourself these questions before marking complete:
+
+1. **Would I trust this code in production?**
+2. **Can another developer understand these tests?**
+3. **Do the tests actually verify the requirements?**
+4. **Are there any edge cases I haven't tested?**
+5. **Would these tests catch regressions?**
+6. **Is the test coverage meaningful or just for numbers?**
+7. **Have I tested error conditions and edge cases?**
+8. **Do the tests run fast enough for TDD workflow?**
+
 ## Success Criteria
 
 Code is ready when:
 - ✅ **ALL existing tests pass** (no regressions)
 - ✅ **No new warnings introduced**
 - ✅ **At least one real API connectivity test** (if working with external APIs)
+- ✅ **Test Review Checklist completed** (all items checked)
 - ✅ No syntax errors
 - ✅ Imports successfully
 - ✅ Runs without errors
@@ -502,21 +602,21 @@ async def test_gemini_api_connectivity():
     import os
     from src.services.llm_service import LLMService
     from src.models.config import LLMConfig
-    
+
     # Skip if no API key
     if not os.getenv("GOOGLE_API_KEY"):
         pytest.skip("GOOGLE_API_KEY not set")
-    
+
     config = LLMConfig(backend="gemini")
     service = LLMService(config)
     await service.load_model()
-    
+
     # Simple test prompt
     answer = await service.generate(
         question="What is 2+2?",
         context="Basic math question"
     )
-    
+
     assert len(answer) > 0
     assert isinstance(answer, str)
 ```

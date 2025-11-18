@@ -1,6 +1,6 @@
 # Papersmith Agent - Project Status
 
-**Current Phase**: Phase 2 (UI Implementation)  
+**Current Phase**: Phase 2 (UI Implementation)
 **Last Updated**: 2025-11-18
 
 ## Overall Progress
@@ -100,5 +100,5 @@
 
 ---
 
-**Last Updated**: 2025-11-18  
+**Last Updated**: 2025-11-18
 **Updated By**: Kiro AI Assistant

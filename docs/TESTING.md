@@ -692,127 +692,29 @@ uv run pytest --durations=0
 
 ## TDD Workflow
 
-### Test-Driven Development Process
+Papersmith AgentはTest-Driven Development (TDD)を採用しています。
 
-Papersmith Agentでは、TDD（Test-Driven Development）を推奨しています。
+詳細なTDDワークフロー、ベストプラクティス、チェックリストについては、[Development Guidelines](../.kiro/steering/development-guidelines.md)を参照してください。
 
-```
-Requirements → Test Design → Red → Green → Refactor → Coverage Check → Done
-                                ↑                    ↓
-                                └────────────────────┘
-```
+### Quick TDD Reference
 
-### Step-by-Step TDD Flow
-
-**1. Red Phase（失敗するテストを書く）**
 ```bash
-# 1. テストファイルを作成
-# tests/unit/services/test_new_feature.py
+# 1. Red: Write failing test
+uv run pytest tests/unit/test_new_feature.py  # Should fail
 
-# 2. 期待される動作を定義
-def test_new_feature():
-    service = NewService()
-    result = service.process("input")
-    assert result == "expected_output"
+# 2. Green: Implement minimal solution
+# ... write code ...
+uv run pytest tests/unit/test_new_feature.py  # Should pass
 
-# 3. テストを実行（失敗することを確認）
-uv run pytest tests/unit/services/test_new_feature.py
-# FAILED - NewService not found
+# 3. Refactor: Improve code
+# ... refactor ...
+uv run pytest tests/unit/test_new_feature.py  # Should still pass
+
+# 4. Coverage: Verify coverage
+uv run pytest --cov=src --cov-report=term
 ```
 
-**2. Green Phase（最小限の実装）**
-```bash
-# 1. 実装を追加
-# src/services/new_service.py
-class NewService:
-    def process(self, input):
-        return "expected_output"
-
-# 2. テストを実行（成功することを確認）
-uv run pytest tests/unit/services/test_new_feature.py
-# PASSED
-```
-
-**3. Refactor Phase（コード改善）**
-```bash
-# 1. コードをリファクタリング
-# - 重複を削除
-# - 可読性を向上
-# - パフォーマンスを最適化
-
-# 2. テストが引き続き成功することを確認
-uv run pytest tests/unit/services/test_new_feature.py
-# PASSED
-```
-
-**4. Coverage Check（カバレッジ確認）**
-```bash
-# カバレッジを確認
-uv run pytest --cov=src/services/new_service.py --cov-report=term
-
-# 目標: 85%以上
-# 不足している場合は追加テストを書く
-```
-
-### TDD Benefits
-
-- ✅ **バグの早期発見**: 実装前にテストを書くことで、要件を明確化
-- ✅ **リファクタリングの安全性**: テストがあるため、安心してコード改善可能
-- ✅ **ドキュメント**: テストが実装の使用例として機能
-- ✅ **設計の改善**: テスト可能なコードは、疎結合で保守しやすい
-
-### Example: TDD in Practice
-
-```python
-# Step 1: Write failing test
-def test_calculate_support_score():
-    """Support Score計算のテスト"""
-    service = RAGService()
-    score = service.calculate_support_score(
-        question="What is RAG?",
-        results=[SearchResult(text="RAG is...", score=0.9)]
-    )
-    assert 0.0 <= score <= 1.0
-    assert isinstance(score, float)
-
-# Step 2: Run test (fails)
-# $ uv run pytest tests/unit/services/test_rag_service.py::test_calculate_support_score
-# FAILED - AttributeError: 'RAGService' object has no attribute 'calculate_support_score'
-
-# Step 3: Implement minimal solution
-class RAGService:
-    def calculate_support_score(self, question: str, results: list) -> float:
-        # Minimal implementation
-        return 0.5
-
-# Step 4: Run test (passes)
-# $ uv run pytest tests/unit/services/test_rag_service.py::test_calculate_support_score
-# PASSED
-
-# Step 5: Refactor and add more tests
-def test_calculate_support_score_high_relevance():
-    """高関連性の場合のSupport Score"""
-    service = RAGService()
-    score = service.calculate_support_score(
-        question="What is RAG?",
-        results=[
-            SearchResult(text="RAG is Retrieval-Augmented Generation...", score=0.95),
-            SearchResult(text="RAG combines retrieval and generation...", score=0.90)
-        ]
-    )
-    assert score > 0.7  # High relevance should give high score
-
-def test_calculate_support_score_low_relevance():
-    """低関連性の場合のSupport Score"""
-    service = RAGService()
-    score = service.calculate_support_score(
-        question="What is RAG?",
-        results=[
-            SearchResult(text="Unrelated content...", score=0.3)
-        ]
-    )
-    assert score < 0.5  # Low relevance should give low score
-```
+詳細は[Development Guidelines - TDD Workflow](../.kiro/steering/development-guidelines.md#tdd-workflow)を参照。
 
 ## Best Practices
 
