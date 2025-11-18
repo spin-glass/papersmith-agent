@@ -404,6 +404,54 @@ Requirements → Test Design → Red → Green → Refactor → Coverage Check �
 - Multi-agent system with LangGraph
 - Advanced features (comparison, digest, etc.)
 
+## Branching Strategy
+
+Papersmith Agent uses **GitHub Flow** with a develop branch:
+
+```
+main (production-ready)
+  ↑
+  └── develop (integration branch)
+       ↑
+       ├── feature/* (new features)
+       ├── fix/* (bug fixes)
+       └── refactor/* (code improvements)
+```
+
+### Branch Types
+
+- **main**: Production-ready code, protected, requires PR + all tests
+- **develop**: Integration branch, requires PR + all tests (recommended)
+- **feature/**: New features, branch from develop, merge to develop
+- **fix/**: Bug fixes, branch from develop (or main for hotfixes)
+- **refactor/**: Code improvements, branch from develop
+
+### Workflow
+
+```bash
+# Start new feature
+git checkout develop && git pull origin develop
+git checkout -b feature/my-feature
+
+# Commit with conventional commits
+git commit -m "feat(scope): description"
+
+# Push and create PR to develop
+git push origin feature/my-feature
+```
+
+### Commit Convention
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation
+- `test`: Tests
+- `refactor`: Code refactoring
+- `ci`: CI/CD changes
+
+See [docs/BRANCHING_STRATEGY.md](../docs/BRANCHING_STRATEGY.md) for detailed workflows.
+
 ## Quick Reference
 
 ```bash
@@ -633,3 +681,243 @@ uv run pytest
 # Check connectivity (run slow tests only)
 uv run pytest -m slow -v
 ```
+
+
+## GitHub Flow Automation
+
+### Branch Management and PR Creation
+
+When working with the GitHub Flow branching strategy, follow these automated steps:
+
+#### 1. Develop Branch Push
+
+After completing work on the develop branch:
+
+```bash
+# Push develop branch to remote
+git push -u origin develop
+```
+
+#### 2. Create Pull Request to Main
+
+Use GitHub CLI to create a PR from develop to main:
+
+```bash
+# Install GitHub CLI if not already installed
+# macOS: brew install gh
+# Login: gh auth login
+
+# Create PR from develop to main
+gh pr create \
+  --base main \
+  --head develop \
+  --title "Release: Merge develop to main" \
+  --body "$(cat <<EOF
+## Summary
+Merge latest development changes from develop branch to main.
+
+## Changes Included
+$(git log main..develop --oneline --no-decorate)
+
+## Testing
+- ✅ All unit tests passing
+- ✅ Integration tests passing (on develop)
+- ✅ E2E tests passing (on develop)
+- ✅ Code coverage maintained at 85%+
+
+## Checklist
+- [x] All tests pass
+- [x] Documentation updated
+- [x] No breaking changes
+- [x] Ready for production deployment
+EOF
+)"
+```
+
+#### 3. Automated PR Creation Script
+
+For convenience, create a script to automate the entire process:
+
+```bash
+#!/bin/bash
+# scripts/create_release_pr.sh
+
+set -e
+
+echo "🚀 Creating release PR from develop to main..."
+
+# Ensure we're on develop branch
+current_branch=$(git branch --show-current)
+if [ "$current_branch" != "develop" ]; then
+    echo "❌ Error: Must be on develop branch"
+    exit 1
+fi
+
+# Ensure develop is up to date
+echo "📥 Pulling latest changes..."
+git pull origin develop
+
+# Push develop to remote
+echo "📤 Pushing develop to remote..."
+git push -u origin develop
+
+# Get commit summary
+commit_summary=$(git log main..develop --oneline --no-decorate | head -20)
+commit_count=$(git rev-list --count main..develop)
+
+# Create PR
+echo "📝 Creating pull request..."
+gh pr create \
+  --base main \
+  --head develop \
+  --title "Release: Merge develop to main ($commit_count commits)" \
+  --body "## Summary
+
+This PR merges the latest development changes from \`develop\` to \`main\`.
+
+## Changes Included ($commit_count commits)
+
+\`\`\`
+$commit_summary
+\`\`\`
+
+## Testing Status
+
+- ✅ All unit tests passing
+- ✅ Integration tests passing
+- ✅ E2E tests passing
+- ✅ Code coverage: 85%+
+
+## Pre-merge Checklist
+
+- [x] All tests pass on develop branch
+- [x] Documentation updated
+- [x] No breaking changes identified
+- [x] CI/CD pipeline successful
+- [x] Ready for production deployment
+
+## Deployment Notes
+
+After merging:
+1. Tag the release: \`git tag -a v1.x.x -m 'Release version 1.x.x'\`
+2. Push tags: \`git push origin v1.x.x\`
+3. Monitor production deployment
+4. Update changelog if needed
+"
+
+echo "✅ Pull request created successfully!"
+echo "🔗 View PR: $(gh pr view --web)"
+```
+
+#### 4. Usage in Development Workflow
+
+**Automated Workflow:**
+
+```bash
+# 1. Complete work on develop branch
+git checkout develop
+git add .
+git commit -m "feat: complete feature implementation"
+
+# 2. Run automated PR creation
+./scripts/create_release_pr.sh
+
+# 3. Review and merge PR on GitHub
+# - Check CI/CD status
+# - Review changes
+# - Approve and merge
+```
+
+#### 5. Kiro Agent Automation
+
+When Kiro completes work on develop branch, it should automatically:
+
+1. **Push develop branch**
+   ```bash
+   git push -u origin develop
+   ```
+
+2. **Create PR using GitHub CLI**
+   ```bash
+   gh pr create --base main --head develop --title "Release: ..." --body "..."
+   ```
+
+3. **Report status to user**
+   - PR URL
+   - Commit count
+   - Test status
+   - Next steps
+
+#### 6. Error Handling
+
+**If GitHub CLI is not installed:**
+```bash
+echo "⚠️ GitHub CLI not found. Please install:"
+echo "  macOS: brew install gh"
+echo "  Linux: See https://github.com/cli/cli#installation"
+exit 1
+```
+
+**If not authenticated:**
+```bash
+if ! gh auth status &>/dev/null; then
+    echo "⚠️ Not authenticated with GitHub. Please run:"
+    echo "  gh auth login"
+    exit 1
+fi
+```
+
+**If PR already exists:**
+```bash
+if gh pr list --head develop --base main | grep -q .; then
+    echo "⚠️ PR already exists from develop to main"
+    echo "🔗 View existing PR: $(gh pr view develop --web)"
+    exit 0
+fi
+```
+
+### Quick Reference Commands
+
+```bash
+# Check if GitHub CLI is installed
+gh --version
+
+# Login to GitHub
+gh auth login
+
+# Check current PRs
+gh pr list
+
+# View PR status
+gh pr status
+
+# Create PR (interactive)
+gh pr create
+
+# Create PR (automated)
+gh pr create --base main --head develop --title "Title" --body "Body"
+
+# View PR in browser
+gh pr view --web
+
+# Merge PR (after approval)
+gh pr merge --merge --delete-branch
+```
+
+### Integration with Kiro Workflow
+
+When Kiro completes a series of commits on develop:
+
+1. ✅ All tests pass
+2. ✅ Documentation updated
+3. ✅ Code coverage maintained
+4. 🤖 **Automatically push develop**
+5. 🤖 **Automatically create PR to main**
+6. 📢 **Notify user with PR link**
+7. ⏳ **Wait for user approval and merge**
+
+This automation ensures:
+- Consistent PR format
+- Complete change documentation
+- Proper testing verification
+- Streamlined release process
