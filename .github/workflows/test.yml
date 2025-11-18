@@ -5,55 +5,70 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      run_full_tests:
+        description: 'Run full test suite (including integration and E2E)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12"]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
-      
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
       - name: Install dependencies
         run: |
           uv sync --frozen --extra dev --extra ui
           uv pip install -e .
-      
+
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-      
+
       - name: Debug - Check src directory
         run: |
           ls -la
           ls -la src/
           ls -la src/models/
-      
+
+      # Unit tests: Always run (fast feedback)
       - name: Run unit tests
         run: uv run pytest tests/unit --cov=src --cov-report=xml --cov-report=term-missing -v --timeout=30
-      
+
+      # Integration tests: Run on develop/main push, PR to develop/main, or manual trigger
       - name: Run integration tests
+        if: |
+          github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/develop' ||
+          github.base_ref == 'develop' ||
+          github.base_ref == 'main' ||
+          github.event.inputs.run_full_tests == 'true'
         run: uv run pytest tests/integration --cov=src --cov-append --cov-report=xml --cov-report=term-missing -v --timeout=60
-      
-      - name: Run E2E tests (fast only)
+
+      # E2E tests: Run only on main push, PR to main, or manual trigger
+      - name: Run E2E tests
+        if: |
+          github.ref == 'refs/heads/main' ||
+          github.base_ref == 'main' ||
+          github.event.inputs.run_full_tests == 'true'
         run: uv run pytest tests/e2e -m "not slow" --cov=src --cov-append --cov-report=xml --cov-report=term-missing -v --timeout=120
-      
+
       - name: Check coverage threshold
         run: uv run coverage report --fail-under=85
-      
+
       - name: Upload coverage to Codecov
-        if: matrix.python-version == '3.12'
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
@@ -64,52 +79,52 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      
-      - name: Set up Python
+
+      - name: Set up Python 3.12
         run: uv python install 3.12
-      
+
       - name: Install dependencies
         run: |
           uv sync --frozen --extra dev
           uv pip install -e .
-      
+
       - name: Check code formatting with ruff
         run: uv run ruff check src tests
         continue-on-error: true
-      
+
       - name: Check type hints with mypy
         run: uv run mypy src --ignore-missing-imports
         continue-on-error: true
 
   security:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      
-      - name: Set up Python
+
+      - name: Set up Python 3.12
         run: uv python install 3.12
-      
+
       - name: Install dependencies
         run: |
           uv sync --frozen --extra dev
           uv pip install -e .
-      
+
       - name: Run security checks with bandit
         run: uv run bandit -r src -ll
         continue-on-error: true
