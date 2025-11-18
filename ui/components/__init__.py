@@ -4,8 +4,8 @@ Requirements: 3.1, 3.2, 3.4
 """
 
 from ui.components.paper_card import render_paper_card
-from ui.components.search_form import render_search_form
 from ui.components.rag_form import render_rag_form
+from ui.components.search_form import render_search_form
 from ui.components.styles import apply_common_styles
 
 __all__ = [
