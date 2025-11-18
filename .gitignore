@@ -39,9 +39,11 @@ ENV/
 # Data and Cache
 data/
 cache/
-models/
+/models/
 *.pdf
+# Allow JSON files in src/models
 *.json
+!src/models/*.json
 
 # Logs
 *.log
