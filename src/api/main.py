@@ -7,9 +7,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+
+# .envファイルを読み込む
+load_dotenv()
 
 from src.api.index_holder import index_holder
 from src.clients.arxiv_client import ArxivClient
