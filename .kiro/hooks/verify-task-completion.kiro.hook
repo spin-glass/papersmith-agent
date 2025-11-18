@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Verify Task Completion",
+  "description": "When a checkbox is checked in a markdown file (task marked as complete), verify that the task is actually completed by reviewing the code, tests, and documentation",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A checkbox has been checked in a markdown file. Please verify that the associated task is actually complete by:\n\n1. Identifying which task was marked as complete (look for changes from `- [ ]` to `- [x]`)\n2. Reading the task description to understand what should be completed\n3. Checking if the implementation exists and is correct\n4. Verifying that tests exist and pass for this task\n5. Confirming documentation is updated if needed\n6. Running any relevant verification commands (pytest, syntax checks, etc.)\n\nIf the task is NOT actually complete:\n- Uncheck the checkbox (change `- [x]` back to `- [ ]`)\n- Add a comment explaining what is missing\n- Notify the user about what needs to be done\n\nIf the task IS complete:\n- Confirm completion\n- Ensure all verification steps passed\n\nBe thorough and don't let incomplete tasks be marked as done."
+  }
+}

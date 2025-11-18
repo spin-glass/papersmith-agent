@@ -27,6 +27,77 @@ A task is complete ONLY when ALL of these are met:
 3. ✅ **Executable**: Code actually runs without errors
 4. ✅ **Verified**: Tested with actual execution (API calls, imports, pytest)
 5. ✅ **Working**: Produces expected results
+6. ✅ **All Tests Pass**: ALL tests for the current task must pass before proceeding
+
+## CRITICAL: Test Failure Protocol
+
+**MANDATORY RULE**: When tests fail, you MUST:
+
+1. **STOP IMMEDIATELY** - Do not proceed to the next task
+2. **ANALYZE THE FAILURE** - Understand why the test failed
+3. **ASK THE USER** - Present the failure and ask for direction:
+   - Show the failing test output
+   - Explain what is failing and why
+   - Provide options:
+     - "Fix the test" (if test logic is wrong)
+     - "Fix the implementation" (if code is wrong)
+     - "Skip for now" (if user wants to defer)
+4. **WAIT FOR USER DECISION** - Do not make assumptions
+5. **NEVER AUTO-PROCEED** - Never move to the next task with failing tests
+6. **NEVER MARK TASK COMPLETE** - Never mark a task as complete if tests are failing
+
+**Example User Prompt:**
+```
+❌ Test Failure Detected
+
+Test: test_home_page_is_loaded
+Error: AssertionError: Home page should be loaded
+
+The test is failing because [explanation].
+
+How would you like to proceed?
+1. Fix the test (test logic may be incorrect)
+2. Fix the implementation (code may be incorrect)
+3. Skip for now (I'll come back to this later)
+```
+
+**Why This Matters:**
+- Failing tests indicate broken functionality
+- Moving forward with failures creates technical debt
+- User input is needed to determine the correct fix
+- Automated fixes may mask real issues
+- **NEVER IGNORE ERRORS** - Every error must be addressed
+
+**CRITICAL: Do Not Simplify Tests to Make Them Pass**
+
+When a test fails, you MUST NOT:
+- ❌ Simplify the test to make it pass
+- ❌ Remove assertions to avoid failures
+- ❌ Weaken test conditions to pass
+- ❌ Skip or comment out failing tests
+- ❌ Change test expectations to match broken behavior
+
+Instead, you MUST:
+- ✅ Keep the test as-is (preserve the failure)
+- ✅ Report the failure to the user
+- ✅ Wait for user decision on how to proceed
+- ✅ Fix the implementation, not the test (unless test logic is genuinely wrong)
+- ✅ Maintain test rigor and coverage
+
+**Why This Is Critical:**
+- Tests define the expected behavior - they are the specification
+- Simplifying tests hides bugs and creates false confidence
+- Failing tests are valuable signals that something is wrong
+- The implementation should match the test, not vice versa
+- Test failures should remain visible until properly resolved
+
+## ABSOLUTE RULES - NEVER VIOLATE
+
+1. **NEVER mark a task as complete if ANY tests are failing**
+2. **NEVER proceed to the next task if the current task has failing tests**
+3. **NEVER ignore test failures** - Always stop and ask the user
+4. **NEVER assume a test failure is acceptable** - Get user confirmation
+5. **NEVER say "understood" and move on when there are test failures**
 
 ## File Operations: Use Kiro Tools, Not Bash Commands
 

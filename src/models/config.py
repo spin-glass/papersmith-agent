@@ -62,7 +62,7 @@ class LLMConfig(BaseModel):
         description="Google Gemini APIキー"
     )
     gemini_model_name: str = Field(
-        default="gemini-2.0-flash",
+        default="gemini-1.5-flash",
         description="Geminiモデル名"
     )
     # OpenAI settings
