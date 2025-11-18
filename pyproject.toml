@@ -12,25 +12,25 @@ dependencies = [
     "fastapi==0.109.0",
     "uvicorn[standard]==0.27.0",
     "python-multipart==0.0.6",
-    
+
     # Vector Database
     "chromadb==0.4.22",
-    
+
     # External LLM APIs
     "google-generativeai>=0.3.0",
     "openai>=1.0.0",
-    
+
     # Data Models and Validation
     "pydantic>=2.5.3",
     "pydantic-settings>=2.1.0",
-    
+
     # External API Clients
     "arxiv==2.1.0",
     "httpx==0.26.0",
-    
+
     # PDF Processing
     "pypdf==3.17.4",
-    
+
     # Utilities
     "python-dotenv==1.0.0",
     "tenacity==8.2.3",
@@ -50,11 +50,11 @@ dev = [
     "pytest-xdist>=3.3.0",
     "pytest-timeout>=2.1.0",
     "coverage[toml]>=7.3.0",
-    
+
     # Linting and formatting
     "ruff>=0.1.0",
     "mypy>=1.7.0",
-    
+
     # Security
     "bandit>=1.7.5",
 ]
