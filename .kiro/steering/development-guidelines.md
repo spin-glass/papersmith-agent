@@ -1003,13 +1003,21 @@ This automation ensures:
 - ✅ `mcp_github_pull_request_read` - For reading PR details
 - ✅ `mcp_github_list_issues` - For listing PRs/issues
 
-#### Bash Commands: Only for Simple Operations
+#### Bash Commands: Only When MCP Not Available
+
+**Alternative Available:**
+- ✅ `git push` → Use `mcp_github_push_files` for pushing files directly to GitHub
+  - More reliable than bash git push
+  - No risk of hangs
+  - Atomic operation
+
+**Required (No MCP alternative):**
+- ⚠️ `git pull` - No MCP tool available (use with caution)
+- ⚠️ `git push` - Only if `mcp_github_push_files` is not suitable
 
 **Acceptable (but MCP preferred):**
-- ⚠️ `git push` - Simple push (but monitor for hangs)
-- ⚠️ `git pull` - Simple pull
-- ⚠️ `git branch` - Quick branch listing
-- ⚠️ `git status` - Quick status check (MCP preferred)
+- ⚠️ `git branch` - Quick branch listing (use `mcp_git_git_branch` instead)
+- ⚠️ `git status` - Quick status check (use `mcp_git_git_status` instead)
 
 **NEVER USE:**
 - ❌ `gh pr create` - ALWAYS use `mcp_github_create_pull_request`
@@ -1229,3 +1237,63 @@ except Exception as e:
 - ✅ **MANDATORY** - Always use MCP (bash will cause problems)
 - ⚠️ **ACCEPTABLE** - Bash is okay for simple operations (but MCP preferred)
 - ❌ **NEVER USE** - Bash command is unreliable or dangerous
+
+
+### Alternative to git push: mcp_github_push_files
+
+Instead of using `git push`, you can use `mcp_github_push_files` to push changes directly to GitHub:
+
+**✅ Recommended Approach:**
+
+```python
+# Get list of changed files
+status = mcp_git_git_status(repo_path=".")
+changed_files = parse_changed_files(status)
+
+# Read file contents
+files_to_push = []
+for file_path in changed_files:
+    with open(file_path, 'r') as f:
+        content = f.read()
+    files_to_push.append({
+        "path": file_path,
+        "content": content
+    })
+
+# Push files directly to GitHub
+mcp_github_push_files(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    branch="develop",
+    files=files_to_push,
+    message="feat: implement new feature"
+)
+```
+
+**Benefits:**
+- ✅ No risk of git push hanging
+- ✅ Atomic operation
+- ✅ More reliable than bash commands
+- ✅ Works even if local git state is complex
+
+**When to use bash git push:**
+- Simple branch push with no file changes
+- Pushing tags
+- Force push (use with extreme caution)
+
+**Example: Push develop branch after commits**
+
+```python
+# After making commits with mcp_git_git_commit
+# Option 1: Use mcp_github_push_files (recommended)
+mcp_github_push_files(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    branch="develop",
+    files=changed_files,
+    message="Latest commits from develop"
+)
+
+# Option 2: Use bash git push (fallback)
+execute_bash("git push -u origin develop")
+```
