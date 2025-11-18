@@ -2,7 +2,7 @@
 
 ![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-372%20passed-brightgreen)
-![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![Python](https://img.shields.io/badge/python-3.12-blue)
 
 完全ローカルで動作する自律型論文解析エージェントシステム
 
@@ -381,11 +381,26 @@ uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 
 ### テストの実行
 
+詳細なテストガイドは [docs/TESTING.md](docs/TESTING.md) を参照してください。
+
+#### クイックスタート
+
 ```bash
 # 全テスト実行（カバレッジ付き）
 uv run pytest --cov=src --cov-report=html --cov-report=term
 
-# ユニットテストのみ（高速）
+# 高速イテレーション（スローテストをスキップ）
+uv run pytest -m "not slow"
+
+# カバレッジレポート確認
+open htmlcov/index.html  # macOS
+xdg-open htmlcov/index.html  # Linux
+```
+
+#### テストカテゴリ別実行
+
+```bash
+# ユニットテストのみ（最速）
 uv run pytest tests/unit -m unit
 
 # 統合テスト
@@ -394,40 +409,110 @@ uv run pytest tests/integration -m integration
 # E2Eテスト
 uv run pytest tests/e2e -m e2e
 
+# 実際のAPI接続テスト（要APIキー）
+uv run pytest tests/connectivity -m slow -v
+
 # 並列実行（高速化）
 uv run pytest -n auto
-
-# スローテストをスキップ（高速イテレーション）
-uv run pytest -m "not slow"
-
-# 実際のAPI接続テスト（要APIキー）
-uv run pytest -m slow -v
-
-# カバレッジレポート確認
-open htmlcov/index.html  # macOS
-# または
-xdg-open htmlcov/index.html  # Linux
 ```
 
-**テストカバレッジ目標:**
-- 全体: 85%+ ✅ (現在: 91%)
-- Services: 90%+ ✅
-- API Endpoints: 85%+ ✅
-- Models: 95%+ ✅
-- Clients: 80%+ ✅
+#### 特定のテスト実行
+
+```bash
+# 特定のファイル
+uv run pytest tests/unit/services/test_llm_service.py
+
+# 特定のテスト関数
+uv run pytest tests/unit/services/test_llm_service.py::test_build_prompt
+
+# パターンマッチ
+uv run pytest -k "test_llm"
+
+# 失敗したテストのみ再実行
+uv run pytest --lf
+```
+
+#### カバレッジ目標と現状
+
+| Component | Target | Current | Status |
+|-----------|--------|---------|--------|
+| Overall | 85%+ | 91.20% | ✅ |
+| Services | 90%+ | 95%+ | ✅ |
+| API Endpoints | 85%+ | 92% | ✅ |
+| Models | 95%+ | 100% | ✅ |
+| Clients | 80%+ | 90%+ | ✅ |
 
 **テスト統計:**
 - 総テスト数: 372 passed, 5 skipped
 - 実行時間: ~4分22秒
 - カバレッジ: 91.20%
-open htmlcov/index.html  # macOS
+
+#### TDD（Test-Driven Development）
+
+Papersmith AgentではTDDを推奨しています：
+
+1. **Red**: 失敗するテストを書く
+2. **Green**: 最小限の実装でテストをパスさせる
+3. **Refactor**: コードを改善する
+4. **Coverage Check**: カバレッジを確認する
+
+詳細なTDDワークフローは [docs/TESTING.md](docs/TESTING.md) を参照してください。
+
+### GitHub Actions CI/CD
+
+GitHub Actionsでは、実行時間を最適化するため、以下の戦略を採用しています：
+
+**デフォルト動作（高速フィードバック）**:
+- ✅ Unit tests（常に実行、~1分）
+- ❌ Integration tests（条件付き実行、~3分）
+- ❌ E2E tests（条件付き実行、~3分）
+
+**フルテスト実行のトリガー**:
+1. **mainブランチへのpush**: すべてのテストを実行
+2. **PRに`run-full-tests`ラベル**: すべてのテストを実行
+3. **手動トリガー**: GitHub Actionsの"Run workflow"から実行
+
+**使い方**:
+```bash
+# 通常のPR開発時（高速）
+git push origin feature-branch  # Unit testsのみ実行
+
+# フルテストが必要な場合
+# 方法1: PRに"run-full-tests"ラベルを追加
+# 方法2: GitHub Actionsから手動トリガー
+# 方法3: mainブランチにマージ（自動的に全テスト実行）
 ```
 
-**カバレッジ目標:**
-- 全体: 85%+
-- Services: 90%+
-- API Endpoints: 85%+
-- Models: 95%+
+詳細は [docs/TESTING.md](docs/TESTING.md) の「CI/CD Integration」セクションを参照してください。
+
+### Pre-commit Hooks
+
+コミット前に自動的にテストとリンターを実行するpre-commit hooksを設定できます：
+
+```bash
+# pre-commitのインストール
+uv pip install pre-commit
+
+# pre-commit hooksの有効化
+pre-commit install
+
+# 手動実行（全ファイル）
+pre-commit run --all-files
+
+# 特定のhookのみ実行
+pre-commit run pytest-unit
+pre-commit run pytest-coverage
+pre-commit run ruff
+```
+
+**設定されているhooks:**
+- **ruff**: コードのリンティングとフォーマット
+- **pytest-unit**: ユニットテストの実行
+- **pytest-coverage**: カバレッジチェック（85%以上）
+- **基本チェック**: trailing whitespace, YAML/JSON構文, 大きなファイル検出など
+- **bandit**: セキュリティチェック
+
+**注意:** pre-commit hooksはユニットテストのみを実行します（高速化のため）。統合テストとE2Eテストは手動またはCIで実行してください。
 
 ### Phase 1の完了状況
 
@@ -502,7 +587,7 @@ pip install mlx mlx-lm
 
 **症状**: `local-cuda` バックエンドでGPUが使用されない
 
-**解決策**: 
+**解決策**:
 1. NVIDIA Container Toolkitのインストール確認
 ```bash
 docker run --rm --gpus all nvidia/cuda:12.1.0-base-ubuntu22.04 nvidia-smi
@@ -523,7 +608,7 @@ deploy:
 
 **症状**: ローカルモデル初回起動時に時間がかかる
 
-**解決策**: 
+**解決策**:
 - 外部API（gemini）を使用して即座に開始
 - または、ログを確認してダウンロード進捗を監視
 ```bash
@@ -543,6 +628,7 @@ docker-compose logs -f papersmith-api
 - [UI使用ガイド](docs/UI_GUIDE.md) - Web UIの詳細な使用方法
 - [Dockerガイド](docs/DOCKER_GUIDE.md) - Docker統合とトラブルシューティング
 - [エラーハンドリング](docs/ERROR_HANDLING.md) - エラーハンドリングパターン
+- [テストガイド](docs/TESTING.md) - テスト実行方法、TDDワークフロー、トラブルシューティング
 
 ### プロジェクト管理
 

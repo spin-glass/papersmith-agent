@@ -83,11 +83,11 @@ if query_button:
 # 結果表示
 if "rag_result" in st.session_state:
     result = st.session_state["rag_result"]
-    
+
     # 回答を表示
     answer = result.get("answer", "")
     render_answer(answer)
-    
+
     # 参照元チャンクを表示
     sources = result.get("sources", [])
     if sources:

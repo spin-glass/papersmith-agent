@@ -1,6 +1,6 @@
 # Papersmith Agent - Project Status
 
-**Current Phase**: Phase 2 (UI Implementation)  
+**Current Phase**: Phase 2 (UI Implementation)
 **Last Updated**: 2025-11-18
 
 ## Overall Progress
@@ -87,7 +87,10 @@
 - [UI_GUIDE.md](UI_GUIDE.md) - Detailed UI usage guide
 - [DOCKER_GUIDE.md](DOCKER_GUIDE.md) - Docker setup & troubleshooting
 - [ERROR_HANDLING.md](ERROR_HANDLING.md) - Error handling patterns
-- [Development Guidelines](../.kiro/steering/development-guidelines.md) - Testing & development practices
+- [TESTING.md](TESTING.md) - Testing guide & TDD workflow
+- [BRANCHING_STRATEGY.md](BRANCHING_STRATEGY.md) - Git workflow & branching
+- [CI_OPTIMIZATION.md](CI_OPTIMIZATION.md) - CI/CD optimization strategy
+- [Development Guidelines](../.kiro/steering/development-guidelines.md) - Development practices
 - [Requirements](../.kiro/specs/papersmith-agent/requirements.md) - Full requirements
 - [Design](../.kiro/specs/papersmith-agent/design.md) - System architecture
 - [Tasks](../.kiro/specs/papersmith-agent/tasks.md) - Implementation tasks
@@ -100,5 +103,5 @@
 
 ---
 
-**Last Updated**: 2025-11-18  
+**Last Updated**: 2025-11-18
 **Updated By**: Kiro AI Assistant

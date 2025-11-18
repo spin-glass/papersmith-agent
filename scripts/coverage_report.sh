@@ -15,7 +15,7 @@ echo "===================="
 if [ -f coverage.json ]; then
     COVERAGE=$(python3 -c "import json; data=json.load(open('coverage.json')); print(f\"{data['totals']['percent_covered']:.1f}\")")
     echo "Total Coverage: ${COVERAGE}%"
-    
+
     # バッジの色を決定
     if (( $(echo "$COVERAGE >= 90" | bc -l) )); then
         COLOR="brightgreen"
@@ -26,7 +26,7 @@ if [ -f coverage.json ]; then
     else
         COLOR="red"
     fi
-    
+
     echo "Badge Color: ${COLOR}"
     echo ""
     echo "📝 Update README.md badge with:"

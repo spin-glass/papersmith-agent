@@ -1,12 +1,13 @@
 """RAG関連モデル"""
 
+from typing import Any, Optional
+
 from pydantic import BaseModel, ConfigDict, Field
-from typing import List, Optional, Dict, Any
 
 
 class SearchResult(BaseModel):
     """検索結果
-    
+
     Requirements: 2.3
     """
     model_config = ConfigDict(
@@ -25,16 +26,16 @@ class SearchResult(BaseModel):
             }
         }
     )
-    
+
     chunk_id: str = Field(..., description="チャンクID")
     text: str = Field(..., description="チャンクテキスト")
     score: float = Field(..., description="類似度スコア")
-    metadata: Dict[str, Any] = Field(..., description="メタデータ")
+    metadata: dict[str, Any] = Field(..., description="メタデータ")
 
 
 class RAGResponse(BaseModel):
     """RAG回答
-    
+
     Requirements: 2.3
     """
     model_config = ConfigDict(
@@ -56,7 +57,7 @@ class RAGResponse(BaseModel):
             }
         }
     )
-    
+
     answer: str = Field(..., description="生成された回答")
-    sources: List[SearchResult] = Field(..., description="参照元の検索結果")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="追加メタデータ")
+    sources: list[SearchResult] = Field(..., description="参照元の検索結果")
+    metadata: Optional[dict[str, Any]] = Field(None, description="追加メタデータ")

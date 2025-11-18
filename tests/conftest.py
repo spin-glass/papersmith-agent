@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """共通テストフィクスチャ
 
 Requirements: Testing Strategy - Test Fixtures
@@ -16,20 +15,21 @@ if str(project_root) not in sys.path:
 print(f"DEBUG: project_root = {project_root}")
 print(f"DEBUG: sys.path = {sys.path}")
 
-import pytest
 from datetime import datetime
-from typing import List, Dict, Any
-from unittest.mock import AsyncMock, MagicMock
+from typing import Any
+from unittest.mock import MagicMock
 
+import pytest
+
+from src.models.config import ChromaConfig, EmbeddingConfig, LLMConfig
 from src.models.paper import PaperMetadata
-from src.models.rag import SearchResult, RAGResponse
-from src.models.config import ChromaConfig, LLMConfig, EmbeddingConfig
+from src.models.rag import SearchResult
 
 
 @pytest.fixture
 def sample_paper_metadata() -> PaperMetadata:
     """サンプル論文メタデータフィクスチャ
-    
+
     Returns:
         テスト用の論文メタデータ
     """
@@ -47,9 +47,9 @@ def sample_paper_metadata() -> PaperMetadata:
 
 
 @pytest.fixture
-def sample_search_results() -> List[SearchResult]:
+def sample_search_results() -> list[SearchResult]:
     """サンプル検索結果フィクスチャ
-    
+
     Returns:
         テスト用の検索結果リスト
     """
@@ -84,25 +84,25 @@ def sample_search_results() -> List[SearchResult]:
 @pytest.fixture
 def chroma_client():
     """In-memory Chromaクライアントフィクスチャ
-    
+
     テスト用のin-memoryベクターストアを提供します。
-    
+
     Returns:
         モックChromaクライアント
     """
     from src.clients.chroma_client import ChromaClient
-    
+
     # In-memory設定
     config = ChromaConfig(
         persist_directory=":memory:",
         collection_name="test_collection"
     )
-    
+
     client = ChromaClient(config)
     client.initialize()
-    
+
     yield client
-    
+
     # クリーンアップ
     try:
         client.client.delete_collection(name=config.collection_name)
@@ -113,74 +113,74 @@ def chroma_client():
 @pytest.fixture
 def mock_llm_service():
     """モックLLMサービスフィクスチャ
-    
+
     LLMサービスのモックを提供します。
     実際のLLM呼び出しを避けてテストを高速化します。
-    
+
     Returns:
         モックLLMサービス
     """
     mock_service = MagicMock()
     mock_service._is_loaded = True
     mock_service.backend = {"type": "mock"}
-    
+
     # デフォルトの回答を設定
     async def mock_generate(question: str, context: str, **kwargs) -> str:
         return f"これは{question}に対するテスト回答です。コンテキスト: {context[:50]}..."
-    
+
     mock_service.generate = mock_generate
     mock_service.is_loaded = MagicMock(return_value=True)
     mock_service.get_model_name = MagicMock(return_value="mock:test-model")
-    
+
     return mock_service
 
 
 @pytest.fixture
 def mock_embedding_service():
     """モックEmbeddingサービスフィクスチャ
-    
+
     Embeddingサービスのモックを提供します。
     実際のEmbedding生成を避けてテストを高速化します。
-    
+
     Returns:
         モックEmbeddingサービス
     """
     mock_service = MagicMock()
     mock_service._is_loaded = True
     mock_service.backend = {"type": "mock"}
-    
+
     # デフォルトのEmbeddingを設定（768次元）
-    async def mock_embed(text: str) -> List[float]:
+    async def mock_embed(text: str) -> list[float]:
         # テキストのハッシュから決定的なEmbeddingを生成
         import hashlib
         hash_val = int(hashlib.md5(text.encode()).hexdigest(), 16)
         return [(hash_val % 1000) / 1000.0] * 768
-    
-    async def mock_embed_batch(texts: List[str]) -> List[List[float]]:
+
+    async def mock_embed_batch(texts: list[str]) -> list[list[float]]:
         return [await mock_embed(text) for text in texts]
-    
+
     mock_service.embed = mock_embed
     mock_service.embed_batch = mock_embed_batch
     mock_service.is_loaded = MagicMock(return_value=True)
     mock_service.get_embedding_dimension = MagicMock(return_value=768)
-    
+
     return mock_service
 
 
 @pytest.fixture
 def mock_paper_service():
     """モックPaperサービスフィクスチャ
-    
+
     PaperServiceのモックを提供します。
     実際のAPI呼び出しを避けてテストを高速化します。
-    
+
     Returns:
         モックPaperサービス
     """
     from src.services.paper_service import PaperService
-    
+
     mock_service = MagicMock(spec=PaperService)
-    
+
     # デフォルトの検索結果
     async def mock_search_papers(query: str, max_results: int = 10):
         return [
@@ -196,16 +196,16 @@ def mock_paper_service():
             )
             for i in range(1, min(max_results + 1, 4))
         ]
-    
+
     mock_service.search_papers = mock_search_papers
-    
+
     return mock_service
 
 
 @pytest.fixture
 def sample_pdf_text() -> str:
     """サンプルPDFテキストフィクスチャ
-    
+
     Returns:
         テスト用のPDFテキスト（IMRaD構造）
     """
@@ -238,9 +238,9 @@ The proposed algorithm is efficient and scalable.
 
 
 @pytest.fixture
-def sample_chunks() -> List[Dict[str, Any]]:
+def sample_chunks() -> list[dict[str, Any]]:
     """サンプルチャンクフィクスチャ
-    
+
     Returns:
         テスト用のチャンクリスト
     """
@@ -276,7 +276,7 @@ def sample_chunks() -> List[Dict[str, Any]]:
 @pytest.fixture
 def llm_config() -> LLMConfig:
     """LLM設定フィクスチャ
-    
+
     Returns:
         テスト用のLLM設定
     """
@@ -291,7 +291,7 @@ def llm_config() -> LLMConfig:
 @pytest.fixture
 def embedding_config() -> EmbeddingConfig:
     """Embedding設定フィクスチャ
-    
+
     Returns:
         テスト用のEmbedding設定
     """
@@ -305,7 +305,7 @@ def embedding_config() -> EmbeddingConfig:
 @pytest.fixture
 def chroma_config() -> ChromaConfig:
     """Chroma設定フィクスチャ
-    
+
     Returns:
         テスト用のChroma設定
     """

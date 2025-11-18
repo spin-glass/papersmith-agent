@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """共通スタイル定義
 
 Requirements: 3.1
@@ -41,7 +40,7 @@ def apply_common_styles():
             margin-top: 0.5rem;
             line-height: 1.5;
         }
-        
+
         /* RAG回答スタイル */
         .answer-box {
             padding: 1.5rem;
@@ -62,7 +61,7 @@ def apply_common_styles():
             line-height: 1.6;
             white-space: pre-wrap;
         }
-        
+
         /* 参照元チャンクスタイル */
         .source-box {
             padding: 1rem;
@@ -81,7 +80,7 @@ def apply_common_styles():
             color: #888;
             font-size: 0.8rem;
         }
-        
+
         /* 質問ボックススタイル */
         .question-box {
             padding: 1rem;
@@ -90,7 +89,7 @@ def apply_common_styles():
             border-left: 4px solid #ffc107;
             margin-bottom: 1rem;
         }
-        
+
         /* メッセージスタイル */
         .success-message {
             color: #28a745;
@@ -104,7 +103,7 @@ def apply_common_styles():
             color: #17a2b8;
             font-weight: bold;
         }
-        
+
         /* バッジスタイル */
         .score-badge {
             display: inline-block;
@@ -125,7 +124,7 @@ def apply_common_styles():
             font-weight: bold;
             margin-right: 0.5rem;
         }
-        
+
         /* 論文一覧カードスタイル */
         .paper-list-card {
             padding: 1.5rem;
@@ -150,7 +149,7 @@ def apply_common_styles():
             font-size: 0.85rem;
             margin-bottom: 0.5rem;
         }
-        
+
         /* 空の状態スタイル */
         .empty-state {
             text-align: center;
@@ -161,7 +160,7 @@ def apply_common_styles():
             font-size: 4rem;
             margin-bottom: 1rem;
         }
-        
+
         /* ヘッダースタイル */
         .main-header {
             font-size: 2.5rem;
@@ -174,7 +173,7 @@ def apply_common_styles():
             color: #666;
             margin-bottom: 2rem;
         }
-        
+
         /* フィーチャーボックススタイル */
         .feature-box {
             padding: 1.5rem;
@@ -182,7 +181,7 @@ def apply_common_styles():
             background-color: #f0f2f6;
             margin-bottom: 1rem;
         }
-        
+
         /* ステータススタイル */
         .status-ok {
             color: #28a745;

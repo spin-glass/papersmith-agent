@@ -1,13 +1,14 @@
 """論文メタデータモデル"""
 
-from pydantic import BaseModel, ConfigDict, Field
-from typing import List, Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PaperMetadata(BaseModel):
     """論文メタデータ
-    
+
     Requirements: 1.5, 2.3
     """
     model_config = ConfigDict(
@@ -25,13 +26,13 @@ class PaperMetadata(BaseModel):
             }
         }
     )
-    
+
     arxiv_id: str = Field(..., description="arXiv論文ID")
     title: str = Field(..., description="論文タイトル")
-    authors: List[str] = Field(..., description="著者リスト")
+    authors: list[str] = Field(..., description="著者リスト")
     abstract: str = Field(..., description="論文要旨")
     year: int = Field(..., description="発行年")
-    categories: List[str] = Field(..., description="arXivカテゴリ")
+    categories: list[str] = Field(..., description="arXivカテゴリ")
     pdf_url: str = Field(..., description="PDF URL")
     doi: Optional[str] = Field(None, description="DOI")
     published_date: datetime = Field(..., description="公開日時")

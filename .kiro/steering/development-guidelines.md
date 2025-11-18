@@ -2,11 +2,21 @@
 
 ## Core Principles
 
-1. **Test-Driven Development (TDD)**: Write tests before implementation
+1. **Test-Driven Development (TDD) - MANDATORY**: Write tests before implementation
+   - Red: Write failing test first
+   - Green: Implement minimal solution
+   - Refactor: Improve code quality
+   - Coverage: Verify 85%+ coverage
 2. **Execute and Verify**: Always run code after writing it
 3. **Fix Immediately**: Don't defer problems - fix them on the spot
-4. **Coverage Target**: Maintain 85%+ test coverage
+4. **Coverage Target - MANDATORY**: Maintain 85%+ test coverage
+   - Overall: 85%+
+   - Services: 90%+
+   - API Endpoints: 85%+
+   - Models: 95%+
+   - Clients: 80%+
 5. **No Documentation Escape**: Don't create docs to avoid fixing issues
+6. **Test Review - MANDATORY**: Complete test review checklist before marking tasks complete
 
 ## Task Completion Definition
 
@@ -394,6 +404,54 @@ Requirements → Test Design → Red → Green → Refactor → Coverage Check �
 - Multi-agent system with LangGraph
 - Advanced features (comparison, digest, etc.)
 
+## Branching Strategy
+
+Papersmith Agent uses **GitHub Flow** with a develop branch:
+
+```
+main (production-ready)
+  ↑
+  └── develop (integration branch)
+       ↑
+       ├── feature/* (new features)
+       ├── fix/* (bug fixes)
+       └── refactor/* (code improvements)
+```
+
+### Branch Types
+
+- **main**: Production-ready code, protected, requires PR + all tests
+- **develop**: Integration branch, requires PR + all tests (recommended)
+- **feature/**: New features, branch from develop, merge to develop
+- **fix/**: Bug fixes, branch from develop (or main for hotfixes)
+- **refactor/**: Code improvements, branch from develop
+
+### Workflow
+
+```bash
+# Start new feature
+git checkout develop && git pull origin develop
+git checkout -b feature/my-feature
+
+# Commit with conventional commits
+git commit -m "feat(scope): description"
+
+# Push and create PR to develop
+git push origin feature/my-feature
+```
+
+### Commit Convention
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation
+- `test`: Tests
+- `refactor`: Code refactoring
+- `ci`: CI/CD changes
+
+See [docs/BRANCHING_STRATEGY.md](../docs/BRANCHING_STRATEGY.md) for detailed workflows.
+
 ## Quick Reference
 
 ```bash
@@ -459,12 +517,102 @@ curl http://localhost:8000/health
 # ❌ NEVER: cat > file.py, echo "text" > file.py
 ```
 
+## Test Review Checklist
+
+Before marking any task complete or submitting a pull request, verify ALL items in this checklist:
+
+### Pre-Implementation Checklist
+
+- [ ] **Existing tests pass**: Run `uv run pytest tests/ -v` - all tests must pass
+- [ ] **No warnings**: Address all deprecation and import warnings
+- [ ] **Clean baseline**: No broken tests or pending fixes
+
+### Test Implementation Checklist
+
+- [ ] **TDD followed**: Tests written before implementation (Red → Green → Refactor)
+- [ ] **Test coverage**: New code has 85%+ coverage
+- [ ] **Test types**:
+  - [ ] Unit tests for core logic (mocked dependencies)
+  - [ ] Integration tests for component interactions
+  - [ ] At least 1 real API connectivity test (if applicable)
+  - [ ] Property-based tests for universal properties (if applicable)
+- [ ] **Test quality**:
+  - [ ] Tests are independent (no shared state)
+  - [ ] Tests are deterministic (no random failures)
+  - [ ] Tests are fast (unit tests < 1s, integration < 10s)
+  - [ ] Tests have clear, descriptive names
+  - [ ] Tests follow AAA pattern (Arrange, Act, Assert)
+- [ ] **Test markers**: Appropriate markers applied (`@pytest.mark.unit`, `@pytest.mark.integration`, `@pytest.mark.slow`)
+- [ ] **Fixtures**: Reusable fixtures in `conftest.py` where appropriate
+- [ ] **Mocking**: External dependencies properly mocked in unit tests
+- [ ] **Assertions**: Clear, specific assertions (not just `assert result`)
+
+### Code Quality Checklist
+
+- [ ] **No syntax errors**: `getDiagnostics` shows no errors
+- [ ] **Imports work**: `python3 -c "import module"` succeeds
+- [ ] **Code runs**: Actual execution produces expected results
+- [ ] **Encoding**: UTF-8 encoding declaration for files with Japanese text
+- [ ] **Dependencies**: All required packages in `pyproject.toml`
+- [ ] **Type hints**: Functions have type annotations
+- [ ] **Docstrings**: Public functions have docstrings
+- [ ] **Error handling**: Appropriate error handling and logging
+
+### Coverage Checklist
+
+- [ ] **Overall coverage**: 85%+ (run `uv run pytest --cov=src --cov-report=term`)
+- [ ] **Component coverage**:
+  - [ ] Services: 90%+
+  - [ ] API Endpoints: 85%+
+  - [ ] Models: 95%+
+  - [ ] Clients: 80%+
+- [ ] **Coverage report**: HTML report generated and reviewed
+- [ ] **Uncovered lines**: Justified (e.g., error handling, defensive code)
+
+### Integration Checklist
+
+- [ ] **All tests pass**: `uv run pytest` - 100% pass rate
+- [ ] **No test skips**: No `@pytest.mark.skip` without justification
+- [ ] **Parallel execution**: Tests pass with `uv run pytest -n auto`
+- [ ] **CI/CD ready**: Tests pass in CI environment
+- [ ] **Documentation updated**: README.md, docs/TESTING.md if needed
+
+### Final Verification
+
+- [ ] **Clean run**: `uv run pytest --cov=src --cov-fail-under=85` passes
+- [ ] **No regressions**: Existing functionality still works
+- [ ] **Performance**: No significant performance degradation
+- [ ] **Logs clean**: No unexpected errors or warnings in logs
+
+### Before Commit
+
+```bash
+# Run this command sequence before committing:
+uv run pytest --cov=src --cov-report=term --cov-fail-under=85
+uv run pytest -n auto  # Verify parallel execution
+uv run pytest -m slow -v  # Verify connectivity tests (if applicable)
+```
+
+### Review Questions
+
+Ask yourself these questions before marking complete:
+
+1. **Would I trust this code in production?**
+2. **Can another developer understand these tests?**
+3. **Do the tests actually verify the requirements?**
+4. **Are there any edge cases I haven't tested?**
+5. **Would these tests catch regressions?**
+6. **Is the test coverage meaningful or just for numbers?**
+7. **Have I tested error conditions and edge cases?**
+8. **Do the tests run fast enough for TDD workflow?**
+
 ## Success Criteria
 
 Code is ready when:
 - ✅ **ALL existing tests pass** (no regressions)
 - ✅ **No new warnings introduced**
 - ✅ **At least one real API connectivity test** (if working with external APIs)
+- ✅ **Test Review Checklist completed** (all items checked)
 - ✅ No syntax errors
 - ✅ Imports successfully
 - ✅ Runs without errors
@@ -502,21 +650,21 @@ async def test_gemini_api_connectivity():
     import os
     from src.services.llm_service import LLMService
     from src.models.config import LLMConfig
-    
+
     # Skip if no API key
     if not os.getenv("GOOGLE_API_KEY"):
         pytest.skip("GOOGLE_API_KEY not set")
-    
+
     config = LLMConfig(backend="gemini")
     service = LLMService(config)
     await service.load_model()
-    
+
     # Simple test prompt
     answer = await service.generate(
         question="What is 2+2?",
         context="Basic math question"
     )
-    
+
     assert len(answer) > 0
     assert isinstance(answer, str)
 ```
@@ -532,4 +680,620 @@ uv run pytest
 
 # Check connectivity (run slow tests only)
 uv run pytest -m slow -v
+```
+
+
+## GitHub Flow Automation
+
+### CRITICAL: Always Use MCP Tools for Git and GitHub Operations
+
+**MANDATORY RULE**: Never use `git push`, `gh pr create`, or other bash commands for Git/GitHub operations. Always use MCP tools for stability and reliability.
+
+### Branch Management and PR Creation
+
+When working with the GitHub Flow branching strategy, follow these automated steps using MCP tools:
+
+#### 1. Push Develop Branch (Use Bash Only for Simple Push)
+
+After completing work on the develop branch:
+
+```bash
+# Simple push is acceptable (but monitor for issues)
+git push -u origin develop
+```
+
+**Note**: If push hangs or fails, this is a known issue. In future, we may need an MCP tool for push operations.
+
+#### 2. Create Pull Request to Main (ALWAYS Use MCP)
+
+**❌ NEVER use `gh pr create` - it can hang with long content**
+
+**✅ ALWAYS use MCP tool:**
+
+```python
+# Get commit information first
+commit_count = execute_bash("git rev-list --count main..develop")
+commit_summary = execute_bash("git log main..develop --oneline --no-decorate")
+
+# Create PR using MCP (reliable and stable)
+mcp_github_create_pull_request(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    title=f"Release: Merge develop to main ({commit_count} commits)",
+    head="develop",
+    base="main",
+    body=f"""## Summary
+
+This PR merges the latest development changes from `develop` to `main`.
+
+## Changes Included ({commit_count} commits)
+
+```
+{commit_summary}
+```
+
+## Testing Status
+
+- ✅ All unit tests passing
+- ✅ Integration tests passing
+- ✅ E2E tests passing
+- ✅ Code coverage: 85%+
+
+## Pre-merge Checklist
+
+- [x] All tests pass on develop branch
+- [x] Documentation updated
+- [x] No breaking changes identified
+- [x] CI/CD pipeline successful
+- [x] Ready for production deployment
+"""
+)
+```
+
+#### 3. Automated PR Creation (MCP-Based)
+
+**❌ DO NOT create bash scripts using `gh pr create`**
+
+**✅ Use MCP tools in your workflow:**
+
+```python
+# Automated PR creation function using MCP
+def create_release_pr():
+    """Create release PR from develop to main using MCP tools"""
+    
+    # 1. Check current branch
+    status = mcp_git_git_status(repo_path=".")
+    if "On branch develop" not in status:
+        print("❌ Error: Must be on develop branch")
+        return
+    
+    # 2. Get commit information
+    commit_count = execute_bash("git rev-list --count main..develop")
+    commit_summary = execute_bash("git log main..develop --oneline --no-decorate")
+    
+    # 3. Push develop branch
+    print("📤 Pushing develop to remote...")
+    execute_bash("git push -u origin develop")
+    
+    # 4. Create PR using MCP (stable and reliable)
+    print("📝 Creating pull request using MCP...")
+    result = mcp_github_create_pull_request(
+        owner="spin-glass",
+        repo="papersmith-agent",
+        title=f"Release: Merge develop to main ({commit_count} commits)",
+        head="develop",
+        base="main",
+        body=f"""## Summary
+
+This PR merges the latest development changes from `develop` to `main`.
+
+## Changes Included ({commit_count} commits)
+
+```
+{commit_summary}
+```
+
+## Testing Status
+
+- ✅ All unit tests passing
+- ✅ Integration tests passing
+- ✅ E2E tests passing
+- ✅ Code coverage: 85%+
+
+## Pre-merge Checklist
+
+- [x] All tests pass on develop branch
+- [x] Documentation updated
+- [x] No breaking changes identified
+- [x] CI/CD pipeline successful
+- [x] Ready for production deployment
+
+## Deployment Notes
+
+After merging:
+1. Tag the release: `git tag -a v1.x.x -m 'Release version 1.x.x'`
+2. Push tags: `git push origin v1.x.x`
+3. Monitor production deployment
+"""
+    )
+    
+    print(f"✅ Pull request created successfully!")
+    print(f"🔗 PR URL: {result['html_url']}")
+    return result
+```
+
+#### 4. Usage in Development Workflow
+
+**Automated Workflow with MCP:**
+
+```python
+# 1. Complete work on develop branch
+mcp_git_git_checkout(repo_path=".", branch_name="develop")
+mcp_git_git_add(repo_path=".", files=["file1.py", "file2.py"])
+mcp_git_git_commit(
+    repo_path=".",
+    message="feat: complete feature implementation"
+)
+
+# 2. Run automated PR creation using MCP
+create_release_pr()  # Uses MCP tools internally
+
+# 3. Review and merge PR on GitHub
+# - Check CI/CD status
+# - Review changes
+# - Approve and merge (can use mcp_github_merge_pull_request)
+```
+
+#### 5. Kiro Agent Automation
+
+When Kiro completes work on develop branch, it MUST automatically:
+
+1. **Push develop branch** (simple bash is acceptable)
+   ```bash
+   git push -u origin develop
+   ```
+
+2. **Create PR using MCP (MANDATORY - never use gh pr create)**
+   ```python
+   mcp_github_create_pull_request(
+       owner="spin-glass",
+       repo="papersmith-agent",
+       title="Release: ...",
+       head="develop",
+       base="main",
+       body="..."  # Long description is safe with MCP
+   )
+   ```
+
+3. **Report status to user**
+   - PR URL from MCP response
+   - Commit count
+   - Test status
+   - Next steps
+
+#### 6. Error Handling with MCP
+
+**MCP tools handle errors gracefully:**
+
+```python
+try:
+    # Create PR using MCP
+    result = mcp_github_create_pull_request(
+        owner="spin-glass",
+        repo="papersmith-agent",
+        title="Release: ...",
+        head="develop",
+        base="main",
+        body="..."
+    )
+    print(f"✅ PR created: {result['html_url']}")
+    
+except Exception as e:
+    if "already exists" in str(e):
+        print("⚠️ PR already exists from develop to main")
+        # Get existing PR
+        existing_pr = mcp_github_pull_request_read(
+            method="get",
+            owner="spin-glass",
+            repo="papersmith-agent",
+            pullNumber=pr_number
+        )
+        print(f"🔗 View existing PR: {existing_pr['html_url']}")
+    else:
+        print(f"❌ Failed to create PR: {e}")
+        raise
+```
+
+**No need to check for GitHub CLI installation - MCP tools are always available**
+
+### Quick Reference: MCP Tools vs Bash Commands
+
+**❌ NEVER USE THESE BASH COMMANDS:**
+```bash
+gh pr create          # Use mcp_github_create_pull_request instead
+gh pr merge           # Use mcp_github_merge_pull_request instead
+gh issue create       # Use mcp_github_issue_write instead
+git commit -m "..."   # Use mcp_git_git_commit for long messages
+```
+
+**✅ ALWAYS USE THESE MCP TOOLS:**
+```python
+# List PRs
+mcp_github_list_issues(owner="spin-glass", repo="papersmith-agent")
+
+# Create PR (stable with long content)
+mcp_github_create_pull_request(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    title="...",
+    head="develop",
+    base="main",
+    body="..."  # Can be very long without issues
+)
+
+# Read PR details
+mcp_github_pull_request_read(
+    method="get",
+    owner="spin-glass",
+    repo="papersmith-agent",
+    pullNumber=123
+)
+
+# Merge PR
+mcp_github_merge_pull_request(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    pullNumber=123,
+    merge_method="merge"
+)
+
+# Add comment
+mcp_github_add_issue_comment(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    issue_number=123,
+    body="Comment text"
+)
+```
+
+### Integration with Kiro Workflow
+
+When Kiro completes a series of commits on develop:
+
+1. ✅ All tests pass
+2. ✅ Documentation updated
+3. ✅ Code coverage maintained
+4. 🤖 **Automatically push develop** (bash: `git push -u origin develop`)
+5. 🤖 **Automatically create PR to main** (MCP: `mcp_github_create_pull_request`)
+6. 📢 **Notify user with PR link** (from MCP response)
+7. ⏳ **Wait for user approval and merge**
+
+**CRITICAL**: Step 5 MUST use MCP tool, never `gh pr create` bash command.
+
+This automation ensures:
+- Consistent PR format
+- Complete change documentation
+- Proper testing verification
+- Streamlined release process
+- **Stability and reliability** (no bash command hangs)
+
+
+## MCP Tools for Git and GitHub Operations
+
+### MANDATORY RULE: Always Prefer MCP Tools
+
+**CRITICAL**: MCP tools are significantly more stable and reliable than bash commands for Git and GitHub operations. Always use MCP tools unless there is a specific reason not to.
+
+#### ALWAYS Use MCP Tools For:
+
+**Git Operations (MANDATORY):**
+- ✅ `mcp_git_git_commit` - For ALL commits (especially with long messages)
+- ✅ `mcp_git_git_add` - For staging files
+- ✅ `mcp_git_git_status` - For checking status
+- ✅ `mcp_git_git_log` - For viewing history
+- ✅ `mcp_git_git_diff` - For viewing changes
+- ✅ `mcp_git_git_create_branch` - For creating branches
+- ✅ `mcp_git_git_checkout` - For switching branches
+
+**GitHub Operations (MANDATORY - NEVER use gh CLI):**
+- ✅ `mcp_github_create_pull_request` - For creating PRs (NEVER use `gh pr create`)
+- ✅ `mcp_github_update_pull_request` - For updating PRs
+- ✅ `mcp_github_merge_pull_request` - For merging PRs (NEVER use `gh pr merge`)
+- ✅ `mcp_github_add_issue_comment` - For adding PR/issue comments
+- ✅ `mcp_github_pull_request_read` - For reading PR details
+- ✅ `mcp_github_list_issues` - For listing PRs/issues
+
+#### Bash Commands: Only When MCP Not Available
+
+**Alternative Available:**
+- ✅ `git push` → Use `mcp_github_push_files` for pushing files directly to GitHub
+  - More reliable than bash git push
+  - No risk of hangs
+  - Atomic operation
+
+**Required (No MCP alternative):**
+- ⚠️ `git pull` - No MCP tool available (use with caution)
+- ⚠️ `git push` - Only if `mcp_github_push_files` is not suitable
+
+**Acceptable (but MCP preferred):**
+- ⚠️ `git branch` - Quick branch listing (use `mcp_git_git_branch` instead)
+- ⚠️ `git status` - Quick status check (use `mcp_git_git_status` instead)
+
+**NEVER USE:**
+- ❌ `gh pr create` - ALWAYS use `mcp_github_create_pull_request`
+- ❌ `gh pr merge` - ALWAYS use `mcp_github_merge_pull_request`
+- ❌ `gh issue create` - ALWAYS use `mcp_github_issue_write`
+- ❌ `git commit -m "$(cat <<EOF...)"` - ALWAYS use `mcp_git_git_commit`
+
+### Why MCP Tools Are MANDATORY
+
+**Critical Benefits:**
+1. **Stability**: No hangs or freezes with long content
+2. **Reliability**: Proper error handling and validation
+3. **Long Content**: Handles very long commit messages and PR descriptions safely
+4. **Structured Data**: Returns structured, parseable responses
+5. **Consistency**: Same interface across all operations
+6. **Trackability**: Operations are logged and trackable
+7. **No Shell Issues**: No escaping, quoting, or heredoc problems
+
+**Critical Problems with Bash Commands:**
+- ❌ **HANGS**: `gh pr create` with long body can hang indefinitely
+- ❌ **FREEZES**: Heredoc (`<<EOF`) causes terminal freezes with large content
+- ❌ **Shell Escaping**: Complex quoting issues with special characters
+- ❌ **Platform Issues**: Different behavior on macOS vs Linux
+- ❌ **Error Recovery**: Difficult to handle errors gracefully
+- ❌ **Unpredictable**: Can fail silently or with cryptic errors
+
+**Real-World Impact:**
+- Bash `gh pr create` with 500+ line body: **HANGS** ❌
+- MCP `mcp_github_create_pull_request` with 500+ line body: **WORKS** ✅
+
+### Examples
+
+#### ❌ WRONG: Using bash for long PR creation
+
+```bash
+# DON'T DO THIS - causes issues with long content
+gh pr create \
+  --base main \
+  --head develop \
+  --title "Release: ..." \
+  --body "$(cat <<EOF
+... very long description ...
+EOF
+)"
+```
+
+#### ✅ CORRECT: Using MCP for PR creation
+
+```python
+mcp_github_create_pull_request(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    title="Release: Merge develop to main (12 commits)",
+    head="develop",
+    base="main",
+    body="""## Summary
+
+This PR merges the latest development changes from `develop` to `main`.
+
+## Changes Included (12 commits)
+
+### Documentation Enhancements
+- Add GitHub Flow automation guidelines
+- Add comprehensive CI/CD optimization documentation
+...
+
+### Testing Status
+- ✅ All unit tests passing
+- ✅ Integration tests passing
+- ✅ E2E tests passing
+- ✅ Code coverage: 85%+
+"""
+)
+```
+
+#### ❌ WRONG: Using bash for long commit
+
+```bash
+# DON'T DO THIS
+git commit -m "$(cat <<EOF
+Very long commit message
+with multiple lines
+and detailed description
+EOF
+)"
+```
+
+#### ✅ CORRECT: Using MCP for commit
+
+```python
+mcp_git_git_commit(
+    repo_path=".",
+    message="""feat: implement new feature
+
+This commit adds comprehensive support for:
+- Feature A with detailed implementation
+- Feature B with error handling
+- Feature C with tests
+
+Closes #123
+"""
+)
+```
+
+### Automated PR Creation with MCP
+
+When creating a release PR from develop to main:
+
+```python
+# 1. Get commit information
+commit_count = execute_bash("git rev-list --count main..develop")
+commit_summary = execute_bash("git log main..develop --oneline --no-decorate")
+
+# 2. Create PR using MCP
+mcp_github_create_pull_request(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    title=f"Release: Merge develop to main ({commit_count} commits)",
+    head="develop",
+    base="main",
+    body=f"""## Summary
+
+This PR merges the latest development changes from `develop` to `main`.
+
+## Changes Included ({commit_count} commits)
+
+```
+{commit_summary}
+```
+
+## Testing Status
+
+- ✅ All unit tests passing
+- ✅ Integration tests passing
+- ✅ E2E tests passing
+- ✅ Code coverage: 85%+
+
+## Pre-merge Checklist
+
+- [x] All tests pass on develop branch
+- [x] Documentation updated
+- [x] No breaking changes identified
+- [x] CI/CD pipeline successful
+- [x] Ready for production deployment
+
+## Deployment Notes
+
+After merging:
+1. Tag the release: `git tag -a v1.x.x -m 'Release version 1.x.x'`
+2. Push tags: `git push origin v1.x.x`
+3. Monitor production deployment
+"""
+)
+```
+
+### Complete Workflow with MCP
+
+```python
+# 1. Stage changes
+mcp_git_git_add(repo_path=".", files=["file1.py", "file2.py"])
+
+# 2. Commit with detailed message
+mcp_git_git_commit(
+    repo_path=".",
+    message="feat: add new feature\n\nDetailed description..."
+)
+
+# 3. Push branch (use bash for simple push)
+execute_bash("git push -u origin develop")
+
+# 4. Create PR with MCP
+mcp_github_create_pull_request(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    title="Release: ...",
+    head="develop",
+    base="main",
+    body="Long PR description..."
+)
+
+# 5. Add comment if needed
+mcp_github_add_issue_comment(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    issue_number=pr_number,
+    body="Additional context..."
+)
+```
+
+### Error Handling
+
+```python
+try:
+    result = mcp_github_create_pull_request(...)
+    print(f"✅ PR created: {result['html_url']}")
+except Exception as e:
+    print(f"❌ Failed to create PR: {e}")
+    # Fallback or retry logic
+```
+
+### Quick Reference: MCP Tools Priority
+
+| Operation | MCP Tool (MANDATORY) | Bash (AVOID) | Notes |
+|-----------|---------------------|--------------|-------|
+| Commit (any) | ✅ `mcp_git_git_commit` | ❌ `git commit -m` | MCP handles long messages safely |
+| Create PR | ✅ `mcp_github_create_pull_request` | ❌ `gh pr create` | **Bash HANGS with long body** |
+| Merge PR | ✅ `mcp_github_merge_pull_request` | ❌ `gh pr merge` | MCP more reliable |
+| Add files | ✅ `mcp_git_git_add` | ⚠️ `git add` | MCP preferred |
+| Check status | ✅ `mcp_git_git_status` | ⚠️ `git status` | MCP preferred |
+| View log | ✅ `mcp_git_git_log` | ⚠️ `git log` | MCP preferred |
+| Create branch | ✅ `mcp_git_git_create_branch` | ⚠️ `git checkout -b` | MCP preferred |
+| Switch branch | ✅ `mcp_git_git_checkout` | ⚠️ `git checkout` | MCP preferred |
+| Push branch | ⚠️ `git push` | ⚠️ `git push` | Acceptable (monitor) |
+| Pull branch | ⚠️ `git pull` | ⚠️ `git pull` | Acceptable |
+
+**Legend:**
+- ✅ **MANDATORY** - Always use MCP (bash will cause problems)
+- ⚠️ **ACCEPTABLE** - Bash is okay for simple operations (but MCP preferred)
+- ❌ **NEVER USE** - Bash command is unreliable or dangerous
+
+
+### Alternative to git push: mcp_github_push_files
+
+Instead of using `git push`, you can use `mcp_github_push_files` to push changes directly to GitHub:
+
+**✅ Recommended Approach:**
+
+```python
+# Get list of changed files
+status = mcp_git_git_status(repo_path=".")
+changed_files = parse_changed_files(status)
+
+# Read file contents
+files_to_push = []
+for file_path in changed_files:
+    with open(file_path, 'r') as f:
+        content = f.read()
+    files_to_push.append({
+        "path": file_path,
+        "content": content
+    })
+
+# Push files directly to GitHub
+mcp_github_push_files(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    branch="develop",
+    files=files_to_push,
+    message="feat: implement new feature"
+)
+```
+
+**Benefits:**
+- ✅ No risk of git push hanging
+- ✅ Atomic operation
+- ✅ More reliable than bash commands
+- ✅ Works even if local git state is complex
+
+**When to use bash git push:**
+- Simple branch push with no file changes
+- Pushing tags
+- Force push (use with extreme caution)
+
+**Example: Push develop branch after commits**
+
+```python
+# After making commits with mcp_git_git_commit
+# Option 1: Use mcp_github_push_files (recommended)
+mcp_github_push_files(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    branch="develop",
+    files=changed_files,
+    message="Latest commits from develop"
+)
+
+# Option 2: Use bash git push (fallback)
+execute_bash("git push -u origin develop")
 ```

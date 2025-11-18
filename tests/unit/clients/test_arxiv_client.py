@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
 """ArxivClientのユニットテスト
 
 Requirements: 1.1, 1.4
 """
 
-import pytest
+from datetime import datetime
+from unittest.mock import AsyncMock, Mock, patch
+
 import arxiv
 import httpx
-from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch, MagicMock
-from datetime import datetime
+import pytest
 
 from src.clients.arxiv_client import ArxivClient, ArxivClientError
 from src.models.paper import PaperMetadata
@@ -31,14 +30,14 @@ def mock_arxiv_result():
     result = Mock(spec=arxiv.Result)
     result.entry_id = "http://arxiv.org/abs/2301.00001v1"
     result.title = "Test Paper Title"
-    
+
     # 著者モック（.name属性を持つ）
     author1 = Mock()
     author1.name = "Author One"
     author2 = Mock()
     author2.name = "Author Two"
     result.authors = [author1, author2]
-    
+
     result.summary = "This is a test abstract."
     result.published = datetime(2023, 1, 1)
     result.categories = ["cs.AI", "cs.LG"]
@@ -59,7 +58,7 @@ def test_arxiv_client_initialization(tmp_path):
         max_retries=5,
         timeout=60
     )
-    
+
     assert client.cache_dir == cache_dir
     assert client.cache_dir.exists()
     assert client.max_retries == 5
@@ -78,7 +77,7 @@ async def test_search_papers_success(arxiv_client, mock_arxiv_result):
     with patch.object(arxiv_client.client, 'results', return_value=[mock_arxiv_result]):
         # 実行
         results = await arxiv_client.search_papers("machine learning", max_results=10)
-        
+
         # 検証
         assert len(results) == 1
         assert isinstance(results[0], PaperMetadata)
@@ -94,7 +93,7 @@ async def test_search_papers_empty_results(arxiv_client):
     with patch.object(arxiv_client.client, 'results', return_value=[]):
         # 実行
         results = await arxiv_client.search_papers("nonexistent query")
-        
+
         # 検証
         assert len(results) == 0
 
@@ -115,7 +114,7 @@ async def test_search_papers_multiple_results(arxiv_client, mock_arxiv_result):
     result2.categories = ["cs.AI"]
     result2.pdf_url = "https://arxiv.org/pdf/2301.00002.pdf"
     result2.doi = None
-    
+
     result3 = Mock(spec=arxiv.Result)
     result3.entry_id = "http://arxiv.org/abs/2301.00003v1"
     result3.title = "Paper 3"
@@ -127,12 +126,12 @@ async def test_search_papers_multiple_results(arxiv_client, mock_arxiv_result):
     result3.categories = ["cs.LG"]
     result3.pdf_url = "https://arxiv.org/pdf/2301.00003.pdf"
     result3.doi = None
-    
+
     # モックの設定
     with patch.object(arxiv_client.client, 'results', return_value=[result1, result2, result3]):
         # 実行
         results = await arxiv_client.search_papers("test", max_results=3)
-        
+
         # 検証
         assert len(results) == 3
         assert results[0].arxiv_id == "2301.00001"
@@ -161,7 +160,7 @@ async def test_get_metadata_success(arxiv_client, mock_arxiv_result):
     with patch.object(arxiv_client.client, 'results', return_value=[mock_arxiv_result]):
         # 実行
         metadata = await arxiv_client.get_metadata("2301.00001")
-        
+
         # 検証
         assert isinstance(metadata, PaperMetadata)
         assert metadata.arxiv_id == "2301.00001"
@@ -199,7 +198,7 @@ async def test_download_pdf_success(arxiv_client, tmp_path):
     mock_response = Mock()
     mock_response.content = b"PDF content"
     mock_response.raise_for_status = Mock()
-    
+
     # httpx.AsyncClientをモック
     with patch('httpx.AsyncClient') as mock_client_class:
         mock_client = AsyncMock()
@@ -207,10 +206,10 @@ async def test_download_pdf_success(arxiv_client, tmp_path):
         mock_client.__aexit__.return_value = None
         mock_client.get = AsyncMock(return_value=mock_response)
         mock_client_class.return_value = mock_client
-        
+
         # 実行
         pdf_path = await arxiv_client.download_pdf("2301.00001")
-        
+
         # 検証
         assert pdf_path.exists()
         assert pdf_path.name == "2301.00001.pdf"
@@ -224,7 +223,7 @@ async def test_download_pdf_with_custom_url(arxiv_client):
     mock_response = Mock()
     mock_response.content = b"PDF content"
     mock_response.raise_for_status = Mock()
-    
+
     # httpx.AsyncClientをモック
     with patch('httpx.AsyncClient') as mock_client_class:
         mock_client = AsyncMock()
@@ -232,11 +231,11 @@ async def test_download_pdf_with_custom_url(arxiv_client):
         mock_client.__aexit__.return_value = None
         mock_client.get = AsyncMock(return_value=mock_response)
         mock_client_class.return_value = mock_client
-        
+
         # 実行
         custom_url = "https://custom.url/paper.pdf"
         pdf_path = await arxiv_client.download_pdf("2301.00001", pdf_url=custom_url)
-        
+
         # 検証
         assert pdf_path.exists()
         mock_client.get.assert_called_once()
@@ -252,10 +251,10 @@ async def test_download_pdf_cached(arxiv_client, tmp_path):
     cache_dir.mkdir(parents=True, exist_ok=True)
     cached_pdf = cache_dir / "2301.00001.pdf"
     cached_pdf.write_bytes(b"Cached PDF content")
-    
+
     # 実行（HTTPクライアントはモックしない）
     pdf_path = await arxiv_client.download_pdf("2301.00001")
-    
+
     # 検証
     assert pdf_path == cached_pdf
     assert pdf_path.read_bytes() == b"Cached PDF content"
@@ -271,7 +270,7 @@ async def test_download_pdf_http_error(arxiv_client):
         mock_client.__aexit__.return_value = None
         mock_client.get = AsyncMock(side_effect=httpx.HTTPError("HTTP error"))
         mock_client_class.return_value = mock_client
-        
+
         # 実行と検証
         with pytest.raises(ArxivClientError, match="Failed to download PDF"):
             await arxiv_client.download_pdf("2301.00001")
@@ -287,7 +286,7 @@ async def test_download_pdf_unexpected_error(arxiv_client):
         mock_client.__aexit__.return_value = None
         mock_client.get = AsyncMock(side_effect=RuntimeError("Unexpected"))
         mock_client_class.return_value = mock_client
-        
+
         # 実行と検証
         with pytest.raises(ArxivClientError, match="Unexpected error"):
             await arxiv_client.download_pdf("2301.00001")
@@ -301,7 +300,7 @@ def test_convert_to_metadata(arxiv_client, mock_arxiv_result):
     """arxiv.ResultをPaperMetadataに変換"""
     # 実行
     metadata = arxiv_client._convert_to_metadata(mock_arxiv_result)
-    
+
     # 検証
     assert isinstance(metadata, PaperMetadata)
     assert metadata.arxiv_id == "2301.00001"
@@ -319,10 +318,10 @@ def test_convert_to_metadata_without_doi(arxiv_client, mock_arxiv_result):
     """DOIがない場合"""
     # DOIを削除
     delattr(mock_arxiv_result, 'doi')
-    
+
     # 実行
     metadata = arxiv_client._convert_to_metadata(mock_arxiv_result)
-    
+
     # 検証
     assert metadata.doi is None
 
@@ -331,10 +330,10 @@ def test_convert_to_metadata_normalizes_arxiv_id(arxiv_client, mock_arxiv_result
     """arXiv IDを正規化（バージョン番号を除去）"""
     # バージョン番号付きのID
     mock_arxiv_result.entry_id = "http://arxiv.org/abs/2301.00001v3"
-    
+
     # 実行
     metadata = arxiv_client._convert_to_metadata(mock_arxiv_result)
-    
+
     # 検証
     assert metadata.arxiv_id == "2301.00001"
 
@@ -342,9 +341,9 @@ def test_convert_to_metadata_normalizes_arxiv_id(arxiv_client, mock_arxiv_result
 def test_convert_to_metadata_extracts_year(arxiv_client, mock_arxiv_result):
     """発行年を抽出"""
     mock_arxiv_result.published = datetime(2024, 6, 15)
-    
+
     # 実行
     metadata = arxiv_client._convert_to_metadata(mock_arxiv_result)
-    
+
     # 検証
     assert metadata.year == 2024

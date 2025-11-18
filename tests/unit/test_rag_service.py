@@ -1,19 +1,19 @@
-# -*- coding: utf-8 -*-
 """RAGServiceのユニットテスト
 
 Requirements: 2.1, 2.2, 2.3, 2.4
 """
 
-import pytest
-from unittest.mock import AsyncMock, Mock, call
 from datetime import datetime
+from unittest.mock import AsyncMock, Mock
 
-from src.services.rag_service import RAGService, build_context, basic_rag_query
+import pytest
+
 from src.clients.chroma_client import ChromaClient
+from src.models.paper import PaperMetadata
+from src.models.rag import RAGResponse, SearchResult
 from src.services.embedding_service import EmbeddingService
 from src.services.llm_service import LLMService
-from src.models.paper import PaperMetadata
-from src.models.rag import SearchResult, RAGResponse
+from src.services.rag_service import RAGService, basic_rag_query, build_context
 
 
 @pytest.fixture
@@ -94,9 +94,9 @@ This is the conclusion.
 References
 [1] Reference one
 """
-    
+
     sections = rag_service._split_by_imrad(text)
-    
+
     # 主要セクションが検出されることを確認
     assert len(sections) > 0
     assert "abstract" in sections
@@ -105,7 +105,7 @@ References
     assert "results" in sections
     assert "discussion" in sections
     assert "conclusion" in sections
-    
+
     # 各セクションにテキストが含まれることを確認
     assert "abstract" in sections["abstract"].lower()
     assert "introduction" in sections["introduction"].lower()
@@ -123,9 +123,9 @@ This is the introduction.
 Conclusion
 This is the conclusion.
 """
-    
+
     sections = rag_service._split_by_imrad(text)
-    
+
     # 検出されたセクションのみが含まれることを確認
     assert "abstract" in sections
     assert "introduction" in sections
@@ -138,9 +138,9 @@ This is the conclusion.
 def test_split_by_imrad_no_sections(rag_service):
     """セクションが検出されない場合は全体をfull_textとして扱う"""
     text = "This is just plain text without any section headers."
-    
+
     sections = rag_service._split_by_imrad(text)
-    
+
     # full_textとして扱われることを確認
     assert "full_text" in sections
     assert sections["full_text"] == text
@@ -167,13 +167,13 @@ def test_split_by_imrad_japanese_sections(rag_service):
 5. まとめ
 これはまとめです。
 """
-    
+
     sections = rag_service._split_by_imrad(text)
-    
+
     # 日本語セクションが検出されることを確認
     assert len(sections) > 0
     # abstract, introduction, methods, results, discussion, conclusionのいずれかが検出される
-    assert any(key in ["abstract", "introduction", "methods", "results", "discussion", "conclusion"] 
+    assert any(key in ["abstract", "introduction", "methods", "results", "discussion", "conclusion"]
                for key in sections.keys())
 
 
@@ -186,9 +186,9 @@ This is the abstract.
 INTRODUCTION
 This is the introduction.
 """
-    
+
     sections = rag_service._split_by_imrad(text)
-    
+
     # 大文字でも検出されることを確認
     assert "abstract" in sections
     assert "introduction" in sections
@@ -201,9 +201,9 @@ This is the introduction.
 def test_chunk_text_basic(rag_service):
     """基本的なテキストチャンク化"""
     text = "This is sentence one. This is sentence two. This is sentence three."
-    
+
     chunks = rag_service._chunk_text(text, chunk_size=30)
-    
+
     # チャンクが作成されることを確認
     assert len(chunks) > 0
     # 各チャンクがchunk_size以下であることを確認（多少の余裕を持たせる）
@@ -214,9 +214,9 @@ def test_chunk_text_basic(rag_service):
 def test_chunk_text_respects_sentence_boundaries(rag_service):
     """文の途中で切らないことを確認"""
     text = "First sentence. Second sentence. Third sentence."
-    
+
     chunks = rag_service._chunk_text(text, chunk_size=20)
-    
+
     # 各チャンクが完全な文で構成されることを確認
     for chunk in chunks:
         # 文末記号で終わるか、最後のチャンクであることを確認
@@ -226,18 +226,18 @@ def test_chunk_text_respects_sentence_boundaries(rag_service):
 def test_chunk_text_empty_input(rag_service):
     """空のテキストの場合は空リストを返す"""
     text = ""
-    
+
     chunks = rag_service._chunk_text(text, chunk_size=100)
-    
+
     assert chunks == []
 
 
 def test_chunk_text_whitespace_only(rag_service):
     """空白のみのテキストの場合は空リストを返す"""
     text = "   \n\n   "
-    
+
     chunks = rag_service._chunk_text(text, chunk_size=100)
-    
+
     assert chunks == []
 
 
@@ -245,9 +245,9 @@ def test_chunk_text_long_sentence(rag_service):
     """chunk_sizeを超える長い文は強制的に分割"""
     # 100文字を超える長い文
     long_sentence = "A" * 150 + "."
-    
+
     chunks = rag_service._chunk_text(long_sentence, chunk_size=100)
-    
+
     # 複数のチャンクに分割されることを確認
     assert len(chunks) > 1
     # 各チャンクがchunk_size以下であることを確認
@@ -258,9 +258,9 @@ def test_chunk_text_long_sentence(rag_service):
 def test_chunk_text_japanese(rag_service):
     """日本語テキストのチャンク化"""
     text = "これは最初の文です。これは二番目の文です。これは三番目の文です。"
-    
+
     chunks = rag_service._chunk_text(text, chunk_size=50)
-    
+
     # チャンクが作成されることを確認
     assert len(chunks) > 0
     # 各チャンクに日本語テキストが含まれることを確認
@@ -272,9 +272,9 @@ def test_chunk_text_japanese(rag_service):
 def test_chunk_text_mixed_delimiters(rag_service):
     """複数の文末記号が混在する場合"""
     text = "First sentence. Second sentence! Third sentence? Fourth sentence."
-    
+
     chunks = rag_service._chunk_text(text, chunk_size=50)
-    
+
     # チャンクが作成されることを確認
     assert len(chunks) > 0
 
@@ -293,7 +293,7 @@ This is a test paper.
 Introduction
 This paper discusses testing.
 """
-    
+
     # 実行
     chunk_count = await rag_service.index_paper(
         arxiv_id="2301.00001",
@@ -301,7 +301,7 @@ This paper discusses testing.
         metadata=sample_paper_metadata,
         chunk_size=100
     )
-    
+
     # 検証
     assert chunk_count > 0
     assert mock_embedding_service.embed_batch.called
@@ -315,7 +315,7 @@ async def test_index_paper_metadata_included(rag_service, sample_paper_metadata,
 Abstract
 This is a test paper about machine learning.
 """
-    
+
     # 実行
     await rag_service.index_paper(
         arxiv_id="2301.00001",
@@ -323,14 +323,14 @@ This is a test paper about machine learning.
         metadata=sample_paper_metadata,
         chunk_size=100
     )
-    
+
     # Chromaに追加された際のメタデータを確認
     assert mock_chroma_client.add.called
-    
+
     # 最初の呼び出しの引数を取得
     call_args = mock_chroma_client.add.call_args
     metadata = call_args[1]["metadata"]
-    
+
     # 必須メタデータが含まれることを確認
     assert "arxiv_id" in metadata
     assert "title" in metadata
@@ -338,7 +338,7 @@ This is a test paper about machine learning.
     assert "year" in metadata
     assert "section" in metadata
     assert "chunk_id" in metadata
-    
+
     # 値が正しいことを確認
     assert metadata["arxiv_id"] == "2301.00001"
     assert metadata["title"] == sample_paper_metadata.title
@@ -361,7 +361,7 @@ This is the methods section. It describes the approach.
 Results
 This is the results section. It presents the findings.
 """
-    
+
     # 実行
     chunk_count = await rag_service.index_paper(
         arxiv_id="2301.00001",
@@ -369,10 +369,10 @@ This is the results section. It presents the findings.
         metadata=sample_paper_metadata,
         chunk_size=50
     )
-    
+
     # 複数のチャンクが作成されることを確認
     assert chunk_count > 1
-    
+
     # 複数回Chromaに追加されることを確認
     assert mock_chroma_client.add.call_count > 1
 
@@ -381,7 +381,7 @@ This is the results section. It presents the findings.
 async def test_index_paper_empty_text(rag_service, sample_paper_metadata, mock_chroma_client, mock_embedding_service):
     """空のテキストの場合"""
     text = ""
-    
+
     # 実行
     chunk_count = await rag_service.index_paper(
         arxiv_id="2301.00001",
@@ -389,7 +389,7 @@ async def test_index_paper_empty_text(rag_service, sample_paper_metadata, mock_c
         metadata=sample_paper_metadata,
         chunk_size=100
     )
-    
+
     # チャンクが作成されないことを確認
     assert chunk_count == 0
     assert not mock_chroma_client.add.called
@@ -402,7 +402,7 @@ async def test_index_paper_chunk_id_format(rag_service, sample_paper_metadata, m
 Abstract
 This is a test paper.
 """
-    
+
     # 実行
     await rag_service.index_paper(
         arxiv_id="2301.00001",
@@ -410,11 +410,11 @@ This is a test paper.
         metadata=sample_paper_metadata,
         chunk_size=100
     )
-    
+
     # chunk_idのフォーマットを確認
     call_args = mock_chroma_client.add.call_args
     chunk_id = call_args[1]["chunk_id"]
-    
+
     # フォーマット: {arxiv_id}_{section}_{index}
     assert chunk_id.startswith("2301.00001_")
     assert "_abstract_" in chunk_id or "_full_text_" in chunk_id
@@ -433,7 +433,7 @@ This is the introduction.
 Methods
 This is the methods.
 """
-    
+
     # 実行
     await rag_service.index_paper(
         arxiv_id="2301.00001",
@@ -441,10 +441,10 @@ This is the methods.
         metadata=sample_paper_metadata,
         chunk_size=50
     )
-    
+
     # embed_batchが呼ばれることを確認（embedは呼ばれない）
     assert mock_embedding_service.embed_batch.called
-    
+
     # バッチサイズが適切であることを確認
     call_args = mock_embedding_service.embed_batch.call_args
     texts = call_args[0][0]
@@ -466,14 +466,14 @@ async def test_query_basic(rag_service, mock_chroma_client, mock_embedding_servi
         metadata={"arxiv_id": "2301.00001", "section": "introduction"}
     )
     mock_chroma_client.search.return_value = [mock_search_result]
-    
+
     # 実行
     results = await rag_service.query(
         question="What is this paper about?",
         arxiv_ids=["2301.00001"],
         top_k=5
     )
-    
+
     # 検証
     assert len(results) == 1
     assert results[0].chunk_id == "test_chunk_1"
@@ -485,7 +485,7 @@ async def test_query_basic(rag_service, mock_chroma_client, mock_embedding_servi
 async def test_query_with_arxiv_ids_filter(rag_service, mock_chroma_client, mock_embedding_service):
     """arxiv_idsフィルタリング付き検索"""
     mock_chroma_client.search.return_value = []
-    
+
     # 実行
     arxiv_ids = ["2301.00001", "2301.00002"]
     await rag_service.query(
@@ -493,7 +493,7 @@ async def test_query_with_arxiv_ids_filter(rag_service, mock_chroma_client, mock
         arxiv_ids=arxiv_ids,
         top_k=5
     )
-    
+
     # Chromaの検索にarxiv_idsが渡されることを確認
     call_args = mock_chroma_client.search.call_args
     assert call_args[1]["arxiv_ids"] == arxiv_ids
@@ -503,14 +503,14 @@ async def test_query_with_arxiv_ids_filter(rag_service, mock_chroma_client, mock
 async def test_query_without_arxiv_ids_filter(rag_service, mock_chroma_client, mock_embedding_service):
     """arxiv_idsフィルタなし（全論文対象）"""
     mock_chroma_client.search.return_value = []
-    
+
     # 実行
     await rag_service.query(
         question="Test question",
         arxiv_ids=None,
         top_k=5
     )
-    
+
     # Chromaの検索にNoneが渡されることを確認
     call_args = mock_chroma_client.search.call_args
     assert call_args[1]["arxiv_ids"] is None
@@ -520,13 +520,13 @@ async def test_query_without_arxiv_ids_filter(rag_service, mock_chroma_client, m
 async def test_query_top_k_parameter(rag_service, mock_chroma_client, mock_embedding_service):
     """top_kパラメータが正しく渡されることを確認"""
     mock_chroma_client.search.return_value = []
-    
+
     # 実行
     await rag_service.query(
         question="Test question",
         top_k=10
     )
-    
+
     # Chromaの検索にtop_kが渡されることを確認
     call_args = mock_chroma_client.search.call_args
     assert call_args[1]["top_k"] == 10
@@ -536,15 +536,15 @@ async def test_query_top_k_parameter(rag_service, mock_chroma_client, mock_embed
 async def test_query_embedding_generation(rag_service, mock_chroma_client, mock_embedding_service):
     """質問がEmbedding化されることを確認"""
     mock_chroma_client.search.return_value = []
-    
+
     question = "What is machine learning?"
-    
+
     # 実行
     await rag_service.query(question=question)
-    
+
     # embedが呼ばれることを確認
     mock_embedding_service.embed.assert_called_once_with(question)
-    
+
     # 生成されたEmbeddingがChromaに渡されることを確認
     call_args = mock_chroma_client.search.call_args
     assert call_args[1]["query_embedding"] == [0.1] * 768
@@ -564,10 +564,10 @@ async def test_query_returns_search_results(rag_service, mock_chroma_client, moc
         for i in range(3)
     ]
     mock_chroma_client.search.return_value = mock_results
-    
+
     # 実行
     results = await rag_service.query(question="Test")
-    
+
     # 結果が正しく返されることを確認
     assert len(results) == 3
     assert results[0].chunk_id == "chunk_0"
@@ -603,9 +603,9 @@ def test_build_context_basic():
             }
         )
     ]
-    
+
     context = build_context(results)
-    
+
     # 必要な情報が含まれることを確認
     assert "Test Paper" in context
     assert "Another Paper" in context
@@ -620,9 +620,9 @@ def test_build_context_basic():
 def test_build_context_empty_results():
     """空の検索結果の場合"""
     results = []
-    
+
     context = build_context(results)
-    
+
     # 空文字列が返されることを確認
     assert context == ""
 
@@ -642,9 +642,9 @@ def test_build_context_numbering():
         )
         for i in range(1, 4)
     ]
-    
+
     context = build_context(results)
-    
+
     # 文献番号が含まれることを確認
     assert "[文献 1]" in context
     assert "[文献 2]" in context
@@ -661,9 +661,9 @@ def test_build_context_missing_metadata():
             metadata={}  # メタデータが空
         )
     ]
-    
+
     context = build_context(results)
-    
+
     # デフォルト値が使用されることを確認
     assert "Unknown" in context
     assert "unknown" in context
@@ -683,9 +683,9 @@ def test_build_context_format():
             }
         )
     ]
-    
+
     context = build_context(results)
-    
+
     # 期待されるフォーマット要素が含まれることを確認
     assert "[文献 1]" in context
     assert "Test Paper" in context
@@ -715,7 +715,7 @@ async def test_basic_rag_query_success(mock_chroma_client, mock_embedding_servic
         )
     ]
     mock_chroma_client.search.return_value = mock_results
-    
+
     # 実行
     response = await basic_rag_query(
         question="What is this about?",
@@ -725,7 +725,7 @@ async def test_basic_rag_query_success(mock_chroma_client, mock_embedding_servic
         llm_service=mock_llm_service,
         top_k=5
     )
-    
+
     # 検証
     assert isinstance(response, RAGResponse)
     assert response.answer == "これはテスト回答です。"
@@ -739,7 +739,7 @@ async def test_basic_rag_query_no_results(mock_chroma_client, mock_embedding_ser
     """検索結果が見つからない場合"""
     # モックの設定
     mock_chroma_client.search.return_value = []
-    
+
     # 実行
     response = await basic_rag_query(
         question="What is this about?",
@@ -749,7 +749,7 @@ async def test_basic_rag_query_no_results(mock_chroma_client, mock_embedding_ser
         llm_service=mock_llm_service,
         top_k=5
     )
-    
+
     # 検証
     assert isinstance(response, RAGResponse)
     assert "関連する情報が見つかりませんでした" in response.answer
@@ -784,7 +784,7 @@ async def test_basic_rag_query_context_building(mock_chroma_client, mock_embeddi
         )
     ]
     mock_chroma_client.search.return_value = mock_results
-    
+
     # 実行
     await basic_rag_query(
         question="Test question",
@@ -794,10 +794,10 @@ async def test_basic_rag_query_context_building(mock_chroma_client, mock_embeddi
         llm_service=mock_llm_service,
         top_k=5
     )
-    
+
     # LLMのgenerateが呼ばれることを確認
     assert mock_llm_service.generate.called
-    
+
     # コンテキストに両方の結果が含まれることを確認
     call_args = mock_llm_service.generate.call_args
     context = call_args[0][1]
@@ -821,7 +821,7 @@ async def test_basic_rag_query_metadata(mock_chroma_client, mock_embedding_servi
         for i in range(3)
     ]
     mock_chroma_client.search.return_value = mock_results
-    
+
     # 実行
     response = await basic_rag_query(
         question="Test",
@@ -831,7 +831,7 @@ async def test_basic_rag_query_metadata(mock_chroma_client, mock_embedding_servi
         llm_service=mock_llm_service,
         top_k=5
     )
-    
+
     # メタデータを確認
     assert response.metadata["results_found"] == 3
     assert response.metadata["context_length"] > 0
@@ -846,12 +846,12 @@ async def test_index_paper_error_handling(mock_chroma_client, mock_embedding_ser
     """インデックス化時のエラーハンドリング"""
     # Embeddingサービスがエラーを投げるように設定
     mock_embedding_service.embed_batch = AsyncMock(side_effect=Exception("Embedding error"))
-    
+
     rag_service = RAGService(
         chroma_client=mock_chroma_client,
         embedding_service=mock_embedding_service
     )
-    
+
     metadata = PaperMetadata(
         arxiv_id="2301.00001",
         title="Test",
@@ -862,7 +862,7 @@ async def test_index_paper_error_handling(mock_chroma_client, mock_embedding_ser
         pdf_url="https://test.com",
         published_date=datetime(2023, 1, 1)
     )
-    
+
     # エラーが再スローされることを確認
     with pytest.raises(Exception, match="Embedding error"):
         await rag_service.index_paper(
@@ -877,12 +877,12 @@ async def test_query_error_handling(mock_chroma_client, mock_embedding_service):
     """検索時のエラーハンドリング"""
     # Embeddingサービスがエラーを投げるように設定
     mock_embedding_service.embed = AsyncMock(side_effect=Exception("Embedding error"))
-    
+
     rag_service = RAGService(
         chroma_client=mock_chroma_client,
         embedding_service=mock_embedding_service
     )
-    
+
     # エラーが再スローされることを確認
     with pytest.raises(Exception, match="Embedding error"):
         await rag_service.query(question="Test question")
@@ -893,7 +893,7 @@ async def test_basic_rag_query_error_handling(mock_chroma_client, mock_embedding
     """basic_rag_query時のエラーハンドリング"""
     # LLMサービスがエラーを投げるように設定
     mock_llm_service.generate = AsyncMock(side_effect=Exception("LLM error"))
-    
+
     # 検索結果を設定
     mock_results = [
         SearchResult(
@@ -904,7 +904,7 @@ async def test_basic_rag_query_error_handling(mock_chroma_client, mock_embedding
         )
     ]
     mock_chroma_client.search.return_value = mock_results
-    
+
     # エラーが再スローされることを確認
     with pytest.raises(Exception, match="LLM error"):
         await basic_rag_query(
@@ -920,9 +920,9 @@ def test_chunk_text_with_empty_sentences(rag_service):
     """空の文が含まれる場合のチャンク化"""
     # 複数の空白や改行が含まれるテキスト
     text = "First sentence.  \n\n  Second sentence.   \n   Third sentence."
-    
+
     chunks = rag_service._chunk_text(text, chunk_size=50)
-    
+
     # チャンクが作成されることを確認
     assert len(chunks) > 0
     # 空のチャンクが含まれないことを確認

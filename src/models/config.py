@@ -1,13 +1,14 @@
 """設定モデル"""
 
-from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional
 from pathlib import Path
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ChromaConfig(BaseModel):
     """Chroma設定
-    
+
     Requirements: 2.3
     """
     model_config = ConfigDict(
@@ -19,7 +20,7 @@ class ChromaConfig(BaseModel):
             }
         }
     )
-    
+
     persist_dir: Path = Field(
         default=Path("./data/chroma"),
         description="Chroma永続化ディレクトリ"
@@ -36,7 +37,7 @@ class ChromaConfig(BaseModel):
 
 class LLMConfig(BaseModel):
     """LLM設定
-    
+
     Requirements: 2.3
     """
     model_config = ConfigDict(
@@ -50,7 +51,7 @@ class LLMConfig(BaseModel):
             }
         }
     )
-    
+
     backend: str = Field(
         default="gemini",
         description="バックエンド (gemini/openai/local-cpu/local-mlx/local-cuda)"
@@ -91,7 +92,7 @@ class LLMConfig(BaseModel):
 
 class EmbeddingConfig(BaseModel):
     """Embedding設定
-    
+
     Requirements: 2.3
     """
     model_config = ConfigDict(
@@ -104,7 +105,7 @@ class EmbeddingConfig(BaseModel):
             }
         }
     )
-    
+
     backend: str = Field(
         default="gemini",
         description="バックエンド (gemini/openai/local-cpu/local-mlx/local-cuda)"

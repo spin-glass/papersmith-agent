@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 """モックAPIレスポンスデータ
 
 Requirements: Testing Strategy - Mocking Strategy
 """
 
-from typing import Dict, Any, List
-from datetime import datetime
-
+from typing import Any
 
 # arXiv API レスポンスのモック
 ARXIV_SEARCH_RESPONSE = """<?xml version="1.0" encoding="UTF-8"?>
@@ -175,14 +172,14 @@ Alice Smith, Bob Johnson, Carol Williams
 Department of Computer Science, Example University
 
 Abstract
-This paper presents a novel approach to machine learning that improves accuracy by 15%. 
+This paper presents a novel approach to machine learning that improves accuracy by 15%.
 We combine deep learning with reinforcement learning to create a more robust algorithm.
 Experiments on three benchmark datasets demonstrate the effectiveness of our approach.
 
 1. Introduction
-Machine learning has become increasingly important in recent years. However, existing 
-approaches have limitations in handling complex, high-dimensional data. This paper 
-addresses these limitations by proposing a new algorithm that combines the strengths 
+Machine learning has become increasingly important in recent years. However, existing
+approaches have limitations in handling complex, high-dimensional data. This paper
+addresses these limitations by proposing a new algorithm that combines the strengths
 of deep learning and reinforcement learning.
 
 The main contributions of this paper are:
@@ -191,59 +188,59 @@ The main contributions of this paper are:
 - Analysis of the algorithm's performance and scalability
 
 2. Related Work
-Previous work in machine learning has focused on either deep learning or reinforcement 
-learning separately. Smith et al. (2020) proposed a deep learning approach that achieved 
-good results on image classification tasks. Johnson et al. (2021) developed a reinforcement 
+Previous work in machine learning has focused on either deep learning or reinforcement
+learning separately. Smith et al. (2020) proposed a deep learning approach that achieved
+good results on image classification tasks. Johnson et al. (2021) developed a reinforcement
 learning method for sequential decision making.
 
 3. Methods
 We propose a new algorithm that consists of three main components:
 
 3.1 Feature Extraction
-The feature extraction component uses a convolutional neural network (CNN) to extract 
-high-level features from raw input data. The CNN architecture consists of 5 convolutional 
+The feature extraction component uses a convolutional neural network (CNN) to extract
+high-level features from raw input data. The CNN architecture consists of 5 convolutional
 layers followed by 2 fully connected layers.
 
 3.2 Policy Learning
-The policy learning component uses a reinforcement learning algorithm to learn an optimal 
-policy based on the extracted features. We use the Proximal Policy Optimization (PPO) 
+The policy learning component uses a reinforcement learning algorithm to learn an optimal
+policy based on the extracted features. We use the Proximal Policy Optimization (PPO)
 algorithm with a learning rate of 0.001.
 
 3.3 Reward Optimization
-The reward optimization component adjusts the reward function dynamically based on the 
+The reward optimization component adjusts the reward function dynamically based on the
 current performance. This allows the algorithm to adapt to different tasks and datasets.
 
 4. Results
 We evaluated our algorithm on three benchmark datasets: MNIST, CIFAR-10, and ImageNet.
 
 4.1 MNIST Results
-On the MNIST dataset, our algorithm achieved 99.2% accuracy, which is 2% higher than 
+On the MNIST dataset, our algorithm achieved 99.2% accuracy, which is 2% higher than
 the baseline deep learning approach.
 
 4.2 CIFAR-10 Results
 On CIFAR-10, we achieved 92.5% accuracy, representing a 5% improvement over the baseline.
 
 4.3 ImageNet Results
-On ImageNet, our algorithm achieved 78.3% top-1 accuracy and 94.1% top-5 accuracy, 
+On ImageNet, our algorithm achieved 78.3% top-1 accuracy and 94.1% top-5 accuracy,
 which is 8% higher than the baseline for top-1 accuracy.
 
 5. Discussion
-The results demonstrate the effectiveness of our approach across different types of datasets. 
-The improvement is particularly significant on complex datasets like ImageNet, where the 
+The results demonstrate the effectiveness of our approach across different types of datasets.
+The improvement is particularly significant on complex datasets like ImageNet, where the
 combination of deep learning and reinforcement learning provides substantial benefits.
 
 5.1 Computational Efficiency
-Our algorithm requires approximately 20% more computation time than baseline deep learning 
+Our algorithm requires approximately 20% more computation time than baseline deep learning
 approaches, but the accuracy improvement justifies this additional cost.
 
 5.2 Scalability
-We tested the algorithm's scalability by varying the dataset size and model complexity. 
+We tested the algorithm's scalability by varying the dataset size and model complexity.
 The results show that the algorithm scales well to large datasets and complex models.
 
 6. Conclusion
-We presented a novel approach to machine learning that combines deep learning with 
-reinforcement learning. The proposed algorithm achieves significant accuracy improvements 
-on three benchmark datasets. Future work will explore applications to other domains such 
+We presented a novel approach to machine learning that combines deep learning with
+reinforcement learning. The proposed algorithm achieves significant accuracy improvements
+on three benchmark datasets. Future work will explore applications to other domains such
 as natural language processing and robotics.
 
 Acknowledgments
@@ -341,14 +338,14 @@ OPENAI_ERROR_RESPONSE = {
 
 
 # ヘルパー関数
-def create_mock_arxiv_result(arxiv_id: str, title: str, authors: List[str]) -> Dict[str, Any]:
+def create_mock_arxiv_result(arxiv_id: str, title: str, authors: list[str]) -> dict[str, Any]:
     """モックarXiv検索結果を生成
-    
+
     Args:
         arxiv_id: arXiv ID
         title: 論文タイトル
         authors: 著者リスト
-        
+
     Returns:
         モック検索結果
     """
@@ -364,13 +361,13 @@ def create_mock_arxiv_result(arxiv_id: str, title: str, authors: List[str]) -> D
     }
 
 
-def create_mock_embedding(dimension: int = 768, seed: int = 0) -> List[float]:
+def create_mock_embedding(dimension: int = 768, seed: int = 0) -> list[float]:
     """モックEmbeddingを生成
-    
+
     Args:
         dimension: Embedding次元数
         seed: ランダムシード
-        
+
     Returns:
         モックEmbedding
     """
@@ -384,15 +381,15 @@ def create_mock_search_result(
     text: str,
     score: float,
     arxiv_id: str = "2301.00001"
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """モック検索結果を生成
-    
+
     Args:
         chunk_id: チャンクID
         text: チャンクテキスト
         score: スコア
         arxiv_id: arXiv ID
-        
+
     Returns:
         モック検索結果
     """
