@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 """設定ローダー - 環境変数から設定を読み込む"""
 
 import os
 from pathlib import Path
-from src.models.config import LLMConfig, EmbeddingConfig, ChromaConfig
+
+from src.models.config import ChromaConfig, EmbeddingConfig, LLMConfig
 
 
 def load_llm_config() -> LLMConfig:
     """環境変数からLLM設定を読み込む
-    
+
     Returns:
         LLM設定
     """
@@ -26,7 +26,7 @@ def load_llm_config() -> LLMConfig:
 
 def load_embedding_config() -> EmbeddingConfig:
     """環境変数からEmbedding設定を読み込む
-    
+
     Returns:
         Embedding設定
     """
@@ -43,7 +43,7 @@ def load_embedding_config() -> EmbeddingConfig:
 
 def load_chroma_config() -> ChromaConfig:
     """環境変数からChroma設定を読み込む
-    
+
     Returns:
         Chroma設定
     """
