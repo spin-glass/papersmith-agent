@@ -32,16 +32,24 @@ jobs:
           uv pip install -e .
       
       - name: Run unit tests
-        run: uv run pytest tests/unit --cov=src --cov-report=xml --cov-report=term-missing -v --timeout=30
+        run: |
+          export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+          uv run pytest tests/unit --cov=src --cov-report=xml --cov-report=term-missing -v --timeout=30
       
       - name: Run integration tests
-        run: uv run pytest tests/integration --cov=src --cov-append --cov-report=xml --cov-report=term-missing -v --timeout=60
+        run: |
+          export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+          uv run pytest tests/integration --cov=src --cov-append --cov-report=xml --cov-report=term-missing -v --timeout=60
       
       - name: Run E2E tests (fast only)
-        run: uv run pytest tests/e2e -m "not slow" --cov=src --cov-append --cov-report=xml --cov-report=term-missing -v --timeout=120
+        run: |
+          export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+          uv run pytest tests/e2e -m "not slow" --cov=src --cov-append --cov-report=xml --cov-report=term-missing -v --timeout=120
       
       - name: Check coverage threshold
-        run: uv run coverage report --fail-under=85
+        run: |
+          export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+          uv run coverage report --fail-under=85
       
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'
