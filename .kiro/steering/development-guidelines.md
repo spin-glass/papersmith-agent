@@ -685,101 +685,113 @@ uv run pytest -m slow -v
 
 ## GitHub Flow Automation
 
+### CRITICAL: Always Use MCP Tools for Git and GitHub Operations
+
+**MANDATORY RULE**: Never use `git push`, `gh pr create`, or other bash commands for Git/GitHub operations. Always use MCP tools for stability and reliability.
+
 ### Branch Management and PR Creation
 
-When working with the GitHub Flow branching strategy, follow these automated steps:
+When working with the GitHub Flow branching strategy, follow these automated steps using MCP tools:
 
-#### 1. Develop Branch Push
+#### 1. Push Develop Branch (Use Bash Only for Simple Push)
 
 After completing work on the develop branch:
 
 ```bash
-# Push develop branch to remote
+# Simple push is acceptable (but monitor for issues)
 git push -u origin develop
 ```
 
-#### 2. Create Pull Request to Main
+**Note**: If push hangs or fails, this is a known issue. In future, we may need an MCP tool for push operations.
 
-Use GitHub CLI to create a PR from develop to main:
+#### 2. Create Pull Request to Main (ALWAYS Use MCP)
 
-```bash
-# Install GitHub CLI if not already installed
-# macOS: brew install gh
-# Login: gh auth login
+**❌ NEVER use `gh pr create` - it can hang with long content**
 
-# Create PR from develop to main
-gh pr create \
-  --base main \
-  --head develop \
-  --title "Release: Merge develop to main" \
-  --body "$(cat <<EOF
-## Summary
-Merge latest development changes from develop branch to main.
+**✅ ALWAYS use MCP tool:**
 
-## Changes Included
-$(git log main..develop --oneline --no-decorate)
+```python
+# Get commit information first
+commit_count = execute_bash("git rev-list --count main..develop")
+commit_summary = execute_bash("git log main..develop --oneline --no-decorate")
 
-## Testing
+# Create PR using MCP (reliable and stable)
+mcp_github_create_pull_request(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    title=f"Release: Merge develop to main ({commit_count} commits)",
+    head="develop",
+    base="main",
+    body=f"""## Summary
+
+This PR merges the latest development changes from `develop` to `main`.
+
+## Changes Included ({commit_count} commits)
+
+```
+{commit_summary}
+```
+
+## Testing Status
+
 - ✅ All unit tests passing
-- ✅ Integration tests passing (on develop)
-- ✅ E2E tests passing (on develop)
-- ✅ Code coverage maintained at 85%+
+- ✅ Integration tests passing
+- ✅ E2E tests passing
+- ✅ Code coverage: 85%+
 
-## Checklist
-- [x] All tests pass
+## Pre-merge Checklist
+
+- [x] All tests pass on develop branch
 - [x] Documentation updated
-- [x] No breaking changes
+- [x] No breaking changes identified
+- [x] CI/CD pipeline successful
 - [x] Ready for production deployment
-EOF
-)"
+"""
+)
 ```
 
-#### 3. Automated PR Creation Script
+#### 3. Automated PR Creation (MCP-Based)
 
-For convenience, create a script to automate the entire process:
+**❌ DO NOT create bash scripts using `gh pr create`**
 
-```bash
-#!/bin/bash
-# scripts/create_release_pr.sh
+**✅ Use MCP tools in your workflow:**
 
-set -e
+```python
+# Automated PR creation function using MCP
+def create_release_pr():
+    """Create release PR from develop to main using MCP tools"""
+    
+    # 1. Check current branch
+    status = mcp_git_git_status(repo_path=".")
+    if "On branch develop" not in status:
+        print("❌ Error: Must be on develop branch")
+        return
+    
+    # 2. Get commit information
+    commit_count = execute_bash("git rev-list --count main..develop")
+    commit_summary = execute_bash("git log main..develop --oneline --no-decorate")
+    
+    # 3. Push develop branch
+    print("📤 Pushing develop to remote...")
+    execute_bash("git push -u origin develop")
+    
+    # 4. Create PR using MCP (stable and reliable)
+    print("📝 Creating pull request using MCP...")
+    result = mcp_github_create_pull_request(
+        owner="spin-glass",
+        repo="papersmith-agent",
+        title=f"Release: Merge develop to main ({commit_count} commits)",
+        head="develop",
+        base="main",
+        body=f"""## Summary
 
-echo "🚀 Creating release PR from develop to main..."
+This PR merges the latest development changes from `develop` to `main`.
 
-# Ensure we're on develop branch
-current_branch=$(git branch --show-current)
-if [ "$current_branch" != "develop" ]; then
-    echo "❌ Error: Must be on develop branch"
-    exit 1
-fi
+## Changes Included ({commit_count} commits)
 
-# Ensure develop is up to date
-echo "📥 Pulling latest changes..."
-git pull origin develop
-
-# Push develop to remote
-echo "📤 Pushing develop to remote..."
-git push -u origin develop
-
-# Get commit summary
-commit_summary=$(git log main..develop --oneline --no-decorate | head -20)
-commit_count=$(git rev-list --count main..develop)
-
-# Create PR
-echo "📝 Creating pull request..."
-gh pr create \
-  --base main \
-  --head develop \
-  --title "Release: Merge develop to main ($commit_count commits)" \
-  --body "## Summary
-
-This PR merges the latest development changes from \`develop\` to \`main\`.
-
-## Changes Included ($commit_count commits)
-
-\`\`\`
-$commit_summary
-\`\`\`
+```
+{commit_summary}
+```
 
 ## Testing Status
 
@@ -799,109 +811,149 @@ $commit_summary
 ## Deployment Notes
 
 After merging:
-1. Tag the release: \`git tag -a v1.x.x -m 'Release version 1.x.x'\`
-2. Push tags: \`git push origin v1.x.x\`
+1. Tag the release: `git tag -a v1.x.x -m 'Release version 1.x.x'`
+2. Push tags: `git push origin v1.x.x`
 3. Monitor production deployment
-4. Update changelog if needed
-"
-
-echo "✅ Pull request created successfully!"
-echo "🔗 View PR: $(gh pr view --web)"
+"""
+    )
+    
+    print(f"✅ Pull request created successfully!")
+    print(f"🔗 PR URL: {result['html_url']}")
+    return result
 ```
 
 #### 4. Usage in Development Workflow
 
-**Automated Workflow:**
+**Automated Workflow with MCP:**
 
-```bash
+```python
 # 1. Complete work on develop branch
-git checkout develop
-git add .
-git commit -m "feat: complete feature implementation"
+mcp_git_git_checkout(repo_path=".", branch_name="develop")
+mcp_git_git_add(repo_path=".", files=["file1.py", "file2.py"])
+mcp_git_git_commit(
+    repo_path=".",
+    message="feat: complete feature implementation"
+)
 
-# 2. Run automated PR creation
-./scripts/create_release_pr.sh
+# 2. Run automated PR creation using MCP
+create_release_pr()  # Uses MCP tools internally
 
 # 3. Review and merge PR on GitHub
 # - Check CI/CD status
 # - Review changes
-# - Approve and merge
+# - Approve and merge (can use mcp_github_merge_pull_request)
 ```
 
 #### 5. Kiro Agent Automation
 
-When Kiro completes work on develop branch, it should automatically:
+When Kiro completes work on develop branch, it MUST automatically:
 
-1. **Push develop branch**
+1. **Push develop branch** (simple bash is acceptable)
    ```bash
    git push -u origin develop
    ```
 
-2. **Create PR using GitHub CLI**
-   ```bash
-   gh pr create --base main --head develop --title "Release: ..." --body "..."
+2. **Create PR using MCP (MANDATORY - never use gh pr create)**
+   ```python
+   mcp_github_create_pull_request(
+       owner="spin-glass",
+       repo="papersmith-agent",
+       title="Release: ...",
+       head="develop",
+       base="main",
+       body="..."  # Long description is safe with MCP
+   )
    ```
 
 3. **Report status to user**
-   - PR URL
+   - PR URL from MCP response
    - Commit count
    - Test status
    - Next steps
 
-#### 6. Error Handling
+#### 6. Error Handling with MCP
 
-**If GitHub CLI is not installed:**
-```bash
-echo "⚠️ GitHub CLI not found. Please install:"
-echo "  macOS: brew install gh"
-echo "  Linux: See https://github.com/cli/cli#installation"
-exit 1
+**MCP tools handle errors gracefully:**
+
+```python
+try:
+    # Create PR using MCP
+    result = mcp_github_create_pull_request(
+        owner="spin-glass",
+        repo="papersmith-agent",
+        title="Release: ...",
+        head="develop",
+        base="main",
+        body="..."
+    )
+    print(f"✅ PR created: {result['html_url']}")
+    
+except Exception as e:
+    if "already exists" in str(e):
+        print("⚠️ PR already exists from develop to main")
+        # Get existing PR
+        existing_pr = mcp_github_pull_request_read(
+            method="get",
+            owner="spin-glass",
+            repo="papersmith-agent",
+            pullNumber=pr_number
+        )
+        print(f"🔗 View existing PR: {existing_pr['html_url']}")
+    else:
+        print(f"❌ Failed to create PR: {e}")
+        raise
 ```
 
-**If not authenticated:**
+**No need to check for GitHub CLI installation - MCP tools are always available**
+
+### Quick Reference: MCP Tools vs Bash Commands
+
+**❌ NEVER USE THESE BASH COMMANDS:**
 ```bash
-if ! gh auth status &>/dev/null; then
-    echo "⚠️ Not authenticated with GitHub. Please run:"
-    echo "  gh auth login"
-    exit 1
-fi
+gh pr create          # Use mcp_github_create_pull_request instead
+gh pr merge           # Use mcp_github_merge_pull_request instead
+gh issue create       # Use mcp_github_issue_write instead
+git commit -m "..."   # Use mcp_git_git_commit for long messages
 ```
 
-**If PR already exists:**
-```bash
-if gh pr list --head develop --base main | grep -q .; then
-    echo "⚠️ PR already exists from develop to main"
-    echo "🔗 View existing PR: $(gh pr view develop --web)"
-    exit 0
-fi
-```
+**✅ ALWAYS USE THESE MCP TOOLS:**
+```python
+# List PRs
+mcp_github_list_issues(owner="spin-glass", repo="papersmith-agent")
 
-### Quick Reference Commands
+# Create PR (stable with long content)
+mcp_github_create_pull_request(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    title="...",
+    head="develop",
+    base="main",
+    body="..."  # Can be very long without issues
+)
 
-```bash
-# Check if GitHub CLI is installed
-gh --version
+# Read PR details
+mcp_github_pull_request_read(
+    method="get",
+    owner="spin-glass",
+    repo="papersmith-agent",
+    pullNumber=123
+)
 
-# Login to GitHub
-gh auth login
+# Merge PR
+mcp_github_merge_pull_request(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    pullNumber=123,
+    merge_method="merge"
+)
 
-# Check current PRs
-gh pr list
-
-# View PR status
-gh pr status
-
-# Create PR (interactive)
-gh pr create
-
-# Create PR (automated)
-gh pr create --base main --head develop --title "Title" --body "Body"
-
-# View PR in browser
-gh pr view --web
-
-# Merge PR (after approval)
-gh pr merge --merge --delete-branch
+# Add comment
+mcp_github_add_issue_comment(
+    owner="spin-glass",
+    repo="papersmith-agent",
+    issue_number=123,
+    body="Comment text"
+)
 ```
 
 ### Integration with Kiro Workflow
@@ -911,28 +963,31 @@ When Kiro completes a series of commits on develop:
 1. ✅ All tests pass
 2. ✅ Documentation updated
 3. ✅ Code coverage maintained
-4. 🤖 **Automatically push develop**
-5. 🤖 **Automatically create PR to main**
-6. 📢 **Notify user with PR link**
+4. 🤖 **Automatically push develop** (bash: `git push -u origin develop`)
+5. 🤖 **Automatically create PR to main** (MCP: `mcp_github_create_pull_request`)
+6. 📢 **Notify user with PR link** (from MCP response)
 7. ⏳ **Wait for user approval and merge**
+
+**CRITICAL**: Step 5 MUST use MCP tool, never `gh pr create` bash command.
 
 This automation ensures:
 - Consistent PR format
 - Complete change documentation
 - Proper testing verification
 - Streamlined release process
+- **Stability and reliability** (no bash command hangs)
 
 
 ## MCP Tools for Git and GitHub Operations
 
-### When to Use MCP Tools vs Bash Commands
+### MANDATORY RULE: Always Prefer MCP Tools
 
-**CRITICAL RULE**: For complex Git and GitHub operations, always use MCP tools instead of bash commands.
+**CRITICAL**: MCP tools are significantly more stable and reliable than bash commands for Git and GitHub operations. Always use MCP tools unless there is a specific reason not to.
 
-#### Use MCP Tools For:
+#### ALWAYS Use MCP Tools For:
 
-**Git Operations:**
-- ✅ `mcp_git_git_commit` - For commits (especially with long messages)
+**Git Operations (MANDATORY):**
+- ✅ `mcp_git_git_commit` - For ALL commits (especially with long messages)
 - ✅ `mcp_git_git_add` - For staging files
 - ✅ `mcp_git_git_status` - For checking status
 - ✅ `mcp_git_git_log` - For viewing history
@@ -940,35 +995,50 @@ This automation ensures:
 - ✅ `mcp_git_git_create_branch` - For creating branches
 - ✅ `mcp_git_git_checkout` - For switching branches
 
-**GitHub Operations:**
-- ✅ `mcp_github_create_pull_request` - For creating PRs (especially with long descriptions)
+**GitHub Operations (MANDATORY - NEVER use gh CLI):**
+- ✅ `mcp_github_create_pull_request` - For creating PRs (NEVER use `gh pr create`)
 - ✅ `mcp_github_update_pull_request` - For updating PRs
-- ✅ `mcp_github_merge_pull_request` - For merging PRs
+- ✅ `mcp_github_merge_pull_request` - For merging PRs (NEVER use `gh pr merge`)
 - ✅ `mcp_github_add_issue_comment` - For adding PR/issue comments
 - ✅ `mcp_github_pull_request_read` - For reading PR details
+- ✅ `mcp_github_list_issues` - For listing PRs/issues
 
-#### Use Bash Commands For:
+#### Bash Commands: Only for Simple Operations
 
-**Simple Operations:**
-- ❌ Simple status checks: `git status` (but prefer MCP for consistency)
-- ❌ Quick branch listing: `git branch`
-- ❌ Version checks: `gh --version`, `git --version`
+**Acceptable (but MCP preferred):**
+- ⚠️ `git push` - Simple push (but monitor for hangs)
+- ⚠️ `git pull` - Simple pull
+- ⚠️ `git branch` - Quick branch listing
+- ⚠️ `git status` - Quick status check (MCP preferred)
 
-### Why Use MCP Tools?
+**NEVER USE:**
+- ❌ `gh pr create` - ALWAYS use `mcp_github_create_pull_request`
+- ❌ `gh pr merge` - ALWAYS use `mcp_github_merge_pull_request`
+- ❌ `gh issue create` - ALWAYS use `mcp_github_issue_write`
+- ❌ `git commit -m "$(cat <<EOF...)"` - ALWAYS use `mcp_git_git_commit`
 
-**Benefits:**
-1. **Reliability**: Proper error handling and validation
-2. **Long Content**: No issues with long commit messages or PR descriptions
-3. **Structured Data**: Returns structured responses
-4. **Consistency**: Same interface across all operations
-5. **Trackability**: Operations are logged and trackable
+### Why MCP Tools Are MANDATORY
 
-**Problems with Bash Commands:**
-- ❌ Shell escaping issues with long text
-- ❌ Heredoc (`<<EOF`) can cause hangs with large content
-- ❌ Quote handling problems
-- ❌ Platform-specific behavior
-- ❌ Difficult error recovery
+**Critical Benefits:**
+1. **Stability**: No hangs or freezes with long content
+2. **Reliability**: Proper error handling and validation
+3. **Long Content**: Handles very long commit messages and PR descriptions safely
+4. **Structured Data**: Returns structured, parseable responses
+5. **Consistency**: Same interface across all operations
+6. **Trackability**: Operations are logged and trackable
+7. **No Shell Issues**: No escaping, quoting, or heredoc problems
+
+**Critical Problems with Bash Commands:**
+- ❌ **HANGS**: `gh pr create` with long body can hang indefinitely
+- ❌ **FREEZES**: Heredoc (`<<EOF`) causes terminal freezes with large content
+- ❌ **Shell Escaping**: Complex quoting issues with special characters
+- ❌ **Platform Issues**: Different behavior on macOS vs Linux
+- ❌ **Error Recovery**: Difficult to handle errors gracefully
+- ❌ **Unpredictable**: Can fail silently or with cryptic errors
+
+**Real-World Impact:**
+- Bash `gh pr create` with 500+ line body: **HANGS** ❌
+- MCP `mcp_github_create_pull_request` with 500+ line body: **WORKS** ✅
 
 ### Examples
 
@@ -1140,19 +1210,22 @@ except Exception as e:
     # Fallback or retry logic
 ```
 
-### Quick Reference
+### Quick Reference: MCP Tools Priority
 
-| Operation | Use MCP Tool | Bash Alternative |
-|-----------|--------------|------------------|
-| Commit (long message) | ✅ `mcp_git_git_commit` | ❌ `git commit -m` |
-| Create PR | ✅ `mcp_github_create_pull_request` | ❌ `gh pr create` |
-| Add files | ✅ `mcp_git_git_add` | ⚠️ `git add` (simple) |
-| Check status | ✅ `mcp_git_git_status` | ⚠️ `git status` (simple) |
-| View log | ✅ `mcp_git_git_log` | ⚠️ `git log` (simple) |
-| Push branch | ⚠️ `git push` | ⚠️ `git push` (simple) |
-| Merge PR | ✅ `mcp_github_merge_pull_request` | ❌ `gh pr merge` |
+| Operation | MCP Tool (MANDATORY) | Bash (AVOID) | Notes |
+|-----------|---------------------|--------------|-------|
+| Commit (any) | ✅ `mcp_git_git_commit` | ❌ `git commit -m` | MCP handles long messages safely |
+| Create PR | ✅ `mcp_github_create_pull_request` | ❌ `gh pr create` | **Bash HANGS with long body** |
+| Merge PR | ✅ `mcp_github_merge_pull_request` | ❌ `gh pr merge` | MCP more reliable |
+| Add files | ✅ `mcp_git_git_add` | ⚠️ `git add` | MCP preferred |
+| Check status | ✅ `mcp_git_git_status` | ⚠️ `git status` | MCP preferred |
+| View log | ✅ `mcp_git_git_log` | ⚠️ `git log` | MCP preferred |
+| Create branch | ✅ `mcp_git_git_create_branch` | ⚠️ `git checkout -b` | MCP preferred |
+| Switch branch | ✅ `mcp_git_git_checkout` | ⚠️ `git checkout` | MCP preferred |
+| Push branch | ⚠️ `git push` | ⚠️ `git push` | Acceptable (monitor) |
+| Pull branch | ⚠️ `git pull` | ⚠️ `git pull` | Acceptable |
 
 **Legend:**
-- ✅ Always use MCP
-- ⚠️ Either is acceptable (prefer MCP for consistency)
-- ❌ Avoid bash for complex operations
+- ✅ **MANDATORY** - Always use MCP (bash will cause problems)
+- ⚠️ **ACCEPTABLE** - Bash is okay for simple operations (but MCP preferred)
+- ❌ **NEVER USE** - Bash command is unreliable or dangerous
