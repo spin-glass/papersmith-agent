@@ -80,9 +80,15 @@ class LLMService:
             raise ValueError("GOOGLE_API_KEY is required for gemini backend")
 
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(self.config.gemini_model_name)
+        
+        # モデル名からmodels/プレフィックスを削除（存在する場合）
+        model_name = self.config.gemini_model_name
+        if model_name.startswith("models/"):
+            model_name = model_name.replace("models/", "")
+        
+        model = genai.GenerativeModel(model_name)
 
-        logger.info(f"Gemini backend configured with model: {self.config.gemini_model_name}")
+        logger.info(f"Gemini backend configured with model: {model_name}")
         return {"type": "gemini", "model": model}
 
     async def _load_openai_backend(self):
